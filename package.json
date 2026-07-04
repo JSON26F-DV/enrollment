@@ -1,0 +1,17 @@
+{
+  "name": "enrollment",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tailwindcss -i ./src/assets/css/input.css -o ./assets/css/style.css --minify",
+    "watch": "npx tailwindcss -i ./src/assets/css/input.css -o ./assets/css/style.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}
