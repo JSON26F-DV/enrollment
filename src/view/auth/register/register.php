@@ -162,8 +162,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_application'])
                 
                 $applicant_id = $pdo->lastInsertId();
                 
-                // Handle document uploads
-                $upload_dir = __DIR__ . '/../../../../../uploads/applicants/' . $applicant_id . '/';
+                // Handle document uploads - use configurable path from database
+                $upload_path = get_document_path('applicant_document') ?? '/assets/uploads/documents/applicants/';
+                $upload_dir = $_SERVER['DOCUMENT_ROOT'] . $upload_path;
                 if (!is_dir($upload_dir)) {
                     mkdir($upload_dir, 0755, true);
                 }
@@ -181,11 +182,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_application'])
                         
                         if (in_array($file['type'], $allowed_types) && $file['size'] <= 5 * 1024 * 1024) {
                             $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-                            $new_name = $doc_type . '_' . time() . '.' . $ext;
-                            $file_path = $upload_dir . $new_name;
+                            $new_name = $doc_type . '_' . $applicant_id . '_' . time() . '.' . $ext;
+                            $dest_path = $upload_dir . $new_name;
                             
-                            if (move_uploaded_file($file['tmp_name'], $file_path)) {
-                                $relative_path = 'uploads/applicants/' . $applicant_id . '/' . $new_name;
+                            if (move_uploaded_file($file['tmp_name'], $dest_path)) {
+                                $relative_path = $upload_path . $new_name;
                                 $stmt_doc = $pdo->prepare("
                                     INSERT INTO applicant_documents (applicant_id, document_type, file_name, file_path, file_size, mime_type)
                                     VALUES (?, ?, ?, ?, ?, ?)

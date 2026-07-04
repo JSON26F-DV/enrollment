@@ -219,14 +219,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_doc'])) {
                             }
                         }
 
-                        $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/enrollment/assets/uploads/documents/';
+                        // Get upload path from database (falls back to default)
+                        $upload_path = get_document_path('student_document') ?? '/assets/uploads/documents/students/';
+                        $upload_dir = $_SERVER['DOCUMENT_ROOT'] . $upload_path;
                         if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
 
                         $filename = $document_type . '_' . $edit_id . '_' . time() . '.' . $ext;
                         $dest = $upload_dir . $filename;
 
                         if (move_uploaded_file($file['tmp_name'], $dest)) {
-                            $file_path = '/enrollment/assets/uploads/documents/' . $filename;
+                            $file_path = $upload_path . $filename;
                             $stmt = $pdo->prepare("INSERT INTO applicant_documents (applicant_id, document_type, file_name, file_path, file_size, mime_type) VALUES (?,?,?,?,?,?)");
                             $stmt->execute([$applicant_id, $document_type, $file['name'], $file_path, $file['size'], $file['type']]);
                             $success = 'Document uploaded successfully!';

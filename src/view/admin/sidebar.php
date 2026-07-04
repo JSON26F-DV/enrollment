@@ -81,6 +81,19 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
                     </svg>
                     <span class="text-sm font-medium">Students</span>
                 </a>
+
+                <div class="pt-4 mt-4 border-t border-gray-200">
+                    <p class="px-4 text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Settings</p>
+                </div>
+
+                <a href="<?= url('/src/view/admin/documentpaths.php') ?>"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors <?= $current_page === 'documentpaths' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' ?>">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    </svg>
+                    <span class="text-sm font-medium">Document Paths</span>
+                </a>
             </nav>
 
             <!-- User Info & Logout -->

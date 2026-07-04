@@ -21,8 +21,8 @@
                         class="px-6 py-2.5 text-sm font-bold text-white bg-google-blue hover:bg-google-blue-hover rounded-full transition-colors shadow-sm active:scale-95">Sign
                         In</a>
                     <a href="<?= url('/src/view/auth/register/register.php') ?>"
-                        class="px-6 py-2 text-sm font-bold text-google-blue hover:bg-google-blue/10 rounded-full transition-colors">Create
-                        Account</a>
+                        class="px-6 py-2 text-sm font-bold text-google-blue hover:bg-google-blue/10 rounded-full transition-colors">Enroll
+                        Now</a>
                 <?php endif; ?>
             </div>
         </div>

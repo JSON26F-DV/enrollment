@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jul 04, 2026 at 11:55 AM
+-- Generation Time: Jul 04, 2026 at 01:03 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -100,6 +100,14 @@ CREATE TABLE `applicants` (
   `expires_at` timestamp NOT NULL DEFAULT (current_timestamp() + interval 14 day)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `applicants`
+--
+
+INSERT INTO `applicants` (`id`, `first_name`, `middle_name`, `last_name`, `suffix`, `birthday`, `gender`, `civil_status`, `nationality`, `religion`, `birth_place`, `email`, `contact_number`, `home_address`, `province`, `city`, `barangay`, `zip_code`, `father_name`, `mother_name`, `guardian_name`, `guardian_contact`, `guardian_relationship`, `education_type`, `highschool_name`, `highschool_address`, `shs_strand`, `shs_track`, `year_graduated`, `lrn`, `previous_college`, `previous_course`, `last_year_level`, `preferred_course`, `second_course`, `semester`, `academic_year`, `status`, `rejection_reason`, `reviewed_by`, `reviewed_at`, `user_id`, `created_at`, `updated_at`, `expires_at`) VALUES
+(1, 'Ebony', 'Kasimir Chaney', 'Dotson', 'Minim voluptatem mol', '2005-07-06', 'Other', 'Married', 'Dolorem quod adipisi', 'Ipsum aliqua Dolor', 'Animi libero alias', 'lesibedym@mailinator.com', '+1 (112) 277-1977', 'Sit distinctio Qua', 'Et non reprehenderit', 'Ea repellendus Dolo', 'Nemo sint enim aute', '99569', 'Erasmus Knapp', 'Holly Walton', 'Charissa Riddle', '+1 (387) 517-4498', 'Other Relative', 'transferee', '', '', '', NULL, '', '', 'Omnis id voluptatum', 'Reprehenderit ut qu', '1st Year', 'BSBA', 'BSCRIM', '1st Semester', '2026-2027', 'approved', NULL, 1, '2026-07-04 10:40:56', 3, '2026-07-04 09:57:43', '2026-07-04 10:40:56', '2026-07-18 09:57:43'),
+(2, 'Student', '', 'NCST', '', '2002-05-15', 'Male', 'Single', 'Filipino', '', '', 'student@ncst.edu.ph', '+639223456789', '', '', '', '', '', NULL, NULL, NULL, NULL, NULL, 'freshman', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, '', '', 'approved', NULL, NULL, NULL, 2, '2026-07-04 10:34:23', '2026-07-04 10:34:23', '2026-07-18 10:34:23');
+
 -- --------------------------------------------------------
 
 --
@@ -184,6 +192,14 @@ CREATE TABLE `students` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `students`
+--
+
+INSERT INTO `students` (`id`, `user_id`, `father_name`, `mother_name`, `guardian_name`, `guardian_contact`, `guardian_relationship`, `education_type`, `highschool_name`, `highschool_address`, `shs_strand`, `shs_track`, `year_graduated`, `lrn`, `previous_college`, `previous_course`, `last_year_level`, `preferred_course`, `second_course`, `semester`, `academic_year`, `enrollment_status`, `created_at`, `updated_at`) VALUES
+(1, 2, '', '', '', '', '', 'freshman', '', '', '', '', '', '', '', '', '', '', '', '', '', 'pending', '2026-07-04 10:34:53', '2026-07-04 10:34:53'),
+(2, 3, 'Erasmus Knapp', 'Holly Walton', 'Charissa Riddle', '+1 (387) 517-4498', 'Other Relative', 'transferee', '', '', '', NULL, '', '', 'Omnis id voluptatum', 'Reprehenderit ut qu', '1st Year', 'BSBA', 'BSCRIM', '1st Semester', '2026-2027', 'pending', '2026-07-04 10:40:56', '2026-07-04 10:40:56');
+
 -- --------------------------------------------------------
 
 --
@@ -224,7 +240,8 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `first_name`, `middle_name`, `last_name`, `suffix`, `birthday`, `age`, `gender`, `civil_status`, `nationality`, `religion`, `birth_place`, `email`, `contact_number`, `home_address`, `province`, `city`, `barangay`, `zip_code`, `password`, `role`, `status`, `created_by`, `created_at`, `updated_at`) VALUES
 (1, 'Admin', NULL, 'NCST', NULL, '1990-01-01', NULL, 'Male', 'Single', 'Filipino', NULL, NULL, 'admin@ncst.edu.ph', '+639123456789', NULL, NULL, NULL, NULL, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', NULL, '2026-07-04 09:12:54', '2026-07-04 09:12:54'),
-(2, 'Student', NULL, 'NCST', NULL, '2002-05-15', NULL, 'Male', 'Single', 'Filipino', NULL, NULL, 'student@ncst.edu.ph', '+639223456789', NULL, NULL, NULL, NULL, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'student', 'pending', NULL, '2026-07-04 09:12:54', '2026-07-04 09:12:54');
+(2, 'jason', 'Verzosa', 'Begornia', '', '2002-05-15', NULL, 'Male', 'Single', 'Filipino', '', '', 'student@ncst.edu.ph', '+639223456789', '', '', '', '', '', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'student', 'active', NULL, '2026-07-04 09:12:54', '2026-07-04 10:36:15'),
+(3, 'Ebony', 'Kasimir Chaney', 'Dotson', 'Minim voluptatem mol', '2005-07-06', NULL, 'Other', 'Married', 'Dolorem quod adipisi', 'Ipsum aliqua Dolor', 'Animi libero alias', 'lesibedym@mailinator.com', '+1 (112) 277-1977', 'Sit distinctio Qua', 'Et non reprehenderit', 'Ea repellendus Dolo', 'Nemo sint enim aute', '99569', '$2y$10$fBnDlCpm6j5tm7Gvnjcw9OH5FZ9fMk.o/0EYU.RbzKqrAQTFNIr96', 'student', 'active', 1, '2026-07-04 10:40:56', '2026-07-04 10:40:56');
 
 --
 -- Indexes for dumped tables
@@ -291,7 +308,7 @@ ALTER TABLE `academic_years`
 -- AUTO_INCREMENT for table `applicants`
 --
 ALTER TABLE `applicants`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `applicant_documents`
@@ -309,13 +326,13 @@ ALTER TABLE `courses`
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
@@ -337,3 +354,30 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+--
+-- Table structure for table `document_paths`
+--
+
+CREATE TABLE `document_paths` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `path_key` varchar(100) NOT NULL,
+  `path_value` varchar(500) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `path_key` (`path_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `document_paths`
+--
+
+INSERT INTO `document_paths` (`id`, `path_key`, `path_value`, `description`, `is_active`, `created_by`, `created_at`, `updated_at`) VALUES
+(1, 'applicant_photo', '/assets/uploads/images/applicants/', 'Applicant 2x2 ID photo upload path', 1, 1, '2026-07-04 09:12:54', '2026-07-04 09:12:54'),
+(2, 'applicant_document', '/assets/uploads/documents/applicants/', 'Applicant document upload path (PSA, Form 138, etc.)', 1, 1, '2026-07-04 09:12:54', '2026-07-04 09:12:54'),
+(3, 'student_photo', '/assets/uploads/images/students/', 'Student ID photo upload path', 1, 1, '2026-07-04 09:12:54', '2026-07-04 09:12:54'),
+(4, 'student_document', '/assets/uploads/documents/students/', 'Student document upload path', 1, 1, '2026-07-04 09:12:54', '2026-07-04 09:12:54');

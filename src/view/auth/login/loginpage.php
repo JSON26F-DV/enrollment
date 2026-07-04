@@ -90,9 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="mt-auto pt-8">
                     <p class="text-sm font-medium text-black/40">
-                        Don't have an account?
+                        Want to enroll?
                         <a href="<?= url('/src/view/auth/register/register.php') ?>"
-                            class="text-google-blue font-bold hover:underline">Create account</a>
+                            class="text-google-blue font-bold hover:underline">Enroll Now</a>
                     </p>
                 </div>
             </div>
@@ -171,9 +171,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="md:hidden mt-8 pt-6 border-t border-black/10 text-center">
                     <p class="text-sm font-medium text-black/40">
-                        Don't have an account?
+                        Want to enroll?
                         <a href="<?= url('/src/view/auth/register/register.php') ?>"
-                            class="text-google-blue font-bold hover:underline">Create account</a>
+                            class="text-google-blue font-bold hover:underline">Enroll Now</a>
                     </p>
                 </div>
             </div>
