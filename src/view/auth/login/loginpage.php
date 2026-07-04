@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../../../src/config/bootstrap.php';
 
 if (check_logged_in()) {
     if (check_admin()) {
-        header("Location: " . url('/src/view/admin/landing/dashboard.php'));
+        header("Location: " . url('/src/view/admin/'));
     } elseif (check_staff()) {
         header("Location: " . url('/src/view/staff/dashboard.php'));
     } else {
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($email) || empty($password)) {
             $error = 'Please enter both email and password.';
         } else {
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND deleted_at IS NULL");
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
             $stmt->execute([$email]);
             $user = $stmt->fetch();
             if ($user && password_verify($password, $user['password'])) {
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['role'] = $user['role'];
                 $_SESSION['logged_in'] = true;
                 if ($user['role'] === 'admin') {
-                    header("Location: " . url('/src/view/admin/landing/dashboard.php'));
+                    header("Location: " . url('/src/view/admin/'));
                 } elseif ($user['role'] === 'staff') {
                     header("Location: " . url('/src/view/staff/dashboard.php'));
                 } else {

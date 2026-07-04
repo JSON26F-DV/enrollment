@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../../../src/config/bootstrap.php';
 
 if (check_logged_in()) {
     if (check_admin()) {
-        header("Location: " . url('/src/view/admin/landing/dashboard.php'));
+        header("Location: " . url('/src/view/admin/'));
     } elseif (check_staff()) {
         header("Location: " . url('/src/view/staff/dashboard.php'));
     } else {
