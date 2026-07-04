@@ -10,22 +10,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $errors[] = 'Invalid session token.';
     } else {
-        $applicant_id = (int)($_POST['applicant_id'] ?? 0);
+        $applicant_id = (int) ($_POST['applicant_id'] ?? 0);
         $action = $_POST['action'] ?? '';
         $rejection_reason = trim($_POST['rejection_reason'] ?? '');
-        
+
         if ($applicant_id && in_array($action, ['approve', 'reject', 'revision'])) {
             try {
                 $pdo->beginTransaction();
-                
+
                 if ($action === 'approve') {
                     $stmt = $pdo->prepare("SELECT * FROM applicants WHERE id = ? AND status = 'pending'");
                     $stmt->execute([$applicant_id]);
                     $applicant = $stmt->fetch();
-                    
+
                     if ($applicant) {
                         $hashed_password = password_hash('ncst123', PASSWORD_DEFAULT);
-                        
+
                         $stmt = $pdo->prepare("
                             INSERT INTO users (
                                 first_name, middle_name, last_name, suffix, birthday, gender,
@@ -34,19 +34,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                                 password, role, status, created_by
                             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         ");
-                        
+
                         $stmt->execute([
-                            $applicant['first_name'], $applicant['middle_name'], $applicant['last_name'], 
-                            $applicant['suffix'], $applicant['birthday'], $applicant['gender'],
-                            $applicant['civil_status'], $applicant['nationality'], $applicant['religion'], 
-                            $applicant['birth_place'], $applicant['email'], $applicant['contact_number'],
-                            $applicant['home_address'], $applicant['province'], $applicant['city'], 
-                            $applicant['barangay'], $applicant['zip_code'],
-                            $hashed_password, 'student', 'active', $_SESSION['user_id']
+                            $applicant['first_name'],
+                            $applicant['middle_name'],
+                            $applicant['last_name'],
+                            $applicant['suffix'],
+                            $applicant['birthday'],
+                            $applicant['gender'],
+                            $applicant['civil_status'],
+                            $applicant['nationality'],
+                            $applicant['religion'],
+                            $applicant['birth_place'],
+                            $applicant['email'],
+                            $applicant['contact_number'],
+                            $applicant['home_address'],
+                            $applicant['province'],
+                            $applicant['city'],
+                            $applicant['barangay'],
+                            $applicant['zip_code'],
+                            $hashed_password,
+                            'student',
+                            'active',
+                            $_SESSION['user_id']
                         ]);
-                        
+
                         $user_id = $pdo->lastInsertId();
-                        
+
                         $stmt = $pdo->prepare("
                             INSERT INTO students (
                                 user_id, father_name, mother_name, guardian_name, guardian_contact, guardian_relationship,
@@ -55,23 +69,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                                 preferred_course, second_course, semester, academic_year
                             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         ");
-                        
+
                         $stmt->execute([
-                            $user_id, $applicant['father_name'], $applicant['mother_name'],
-                            $applicant['guardian_name'], $applicant['guardian_contact'], $applicant['guardian_relationship'],
-                            $applicant['education_type'], $applicant['highschool_name'], $applicant['highschool_address'],
-                            $applicant['shs_strand'], $applicant['year_graduated'], $applicant['lrn'],
-                            $applicant['previous_college'], $applicant['previous_course'], $applicant['last_year_level'],
-                            $applicant['preferred_course'], $applicant['second_course'], $applicant['semester'], 
+                            $user_id,
+                            $applicant['father_name'],
+                            $applicant['mother_name'],
+                            $applicant['guardian_name'],
+                            $applicant['guardian_contact'],
+                            $applicant['guardian_relationship'],
+                            $applicant['education_type'],
+                            $applicant['highschool_name'],
+                            $applicant['highschool_address'],
+                            $applicant['shs_strand'],
+                            $applicant['year_graduated'],
+                            $applicant['lrn'],
+                            $applicant['previous_college'],
+                            $applicant['previous_course'],
+                            $applicant['last_year_level'],
+                            $applicant['preferred_course'],
+                            $applicant['second_course'],
+                            $applicant['semester'],
                             $applicant['academic_year']
                         ]);
-                        
+
                         $stmt = $pdo->prepare("
                             UPDATE applicants SET status = 'approved', reviewed_by = ?, reviewed_at = NOW(), user_id = ?
                             WHERE id = ?
                         ");
                         $stmt->execute([$_SESSION['user_id'], $user_id, $applicant_id]);
-                        
+
                         $success = "Application approved! Student account created with default password: ncst123";
                     }
                 } else {
@@ -82,9 +108,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                     $stmt->execute([$action === 'revision' ? 'revision' : 'rejected', $rejection_reason, $_SESSION['user_id'], $applicant_id]);
                     $success = "Application marked as " . ($action === 'revision' ? 'needs revision' : 'rejected') . ".";
                 }
-                
+
                 $pdo->commit();
-                
+
             } catch (PDOException $e) {
                 $pdo->rollBack();
                 $errors[] = 'Database error: ' . $e->getMessage();
@@ -142,19 +168,25 @@ foreach ($applicants as $a) {
 
 <!-- Filter Tabs -->
 <div class="flex flex-wrap gap-2 mb-6 bg-white p-2 rounded-xl shadow-sm">
-    <a href="?status=pending" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors <?= $status_filter === 'pending' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' ?>">
-        Pending <?php if ($counts['pending'] > 0): ?><span class="ml-1 bg-amber-400 text-amber-900 px-2 py-0.5 rounded-full text-xs"><?= $counts['pending'] ?></span><?php endif; ?>
+    <a href="?status=pending"
+        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors <?= $status_filter === 'pending' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' ?>">
+        Pending <?php if ($counts['pending'] > 0): ?><span
+                class="ml-1 bg-amber-400 text-amber-900 px-2 py-0.5 rounded-full text-xs"><?= $counts['pending'] ?></span><?php endif; ?>
     </a>
-    <a href="?status=approved" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors <?= $status_filter === 'approved' ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-gray-100' ?>">
+    <a href="?status=approved"
+        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors <?= $status_filter === 'approved' ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-gray-100' ?>">
         Approved
     </a>
-    <a href="?status=rejected" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors <?= $status_filter === 'rejected' ? 'bg-red-600 text-white' : 'text-gray-600 hover:bg-gray-100' ?>">
+    <a href="?status=rejected"
+        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors <?= $status_filter === 'rejected' ? 'bg-red-600 text-white' : 'text-gray-600 hover:bg-gray-100' ?>">
         Rejected
     </a>
-    <a href="?status=revision" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors <?= $status_filter === 'revision' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100' ?>">
+    <a href="?status=revision"
+        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors <?= $status_filter === 'revision' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100' ?>">
         Needs Revision
     </a>
-    <a href="?status=all" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors <?= $status_filter === 'all' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-100' ?>">
+    <a href="?status=all"
+        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors <?= $status_filter === 'all' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-100' ?>">
         All (<?= $counts['all'] ?>)
     </a>
 </div>
@@ -164,7 +196,8 @@ foreach ($applicants as $a) {
     <?php if (empty($applicants)): ?>
         <div class="p-8 text-center text-gray-500">
             <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <p>No applications found.</p>
         </div>
@@ -173,31 +206,40 @@ foreach ($applicants as $a) {
             <table class="w-full">
                 <thead class="bg-gray-50 border-b">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Education</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant
+                        </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course
+                        </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Education
+                        </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status
+                        </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions
+                        </th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     <?php foreach ($applicants as $app): ?>
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-4">
-                                <div class="font-medium text-gray-900"><?= htmlspecialchars($app['first_name'] . ' ' . ($app['middle_name'] ?? '') . ' ' . $app['last_name']) ?></div>
+                                <div class="font-medium text-gray-900">
+                                    <?= htmlspecialchars($app['first_name'] . ' ' . ($app['middle_name'] ?? '') . ' ' . $app['last_name']) ?>
+                                </div>
                                 <div class="text-sm text-gray-500"><?= htmlspecialchars($app['email']) ?></div>
                             </td>
                             <td class="px-4 py-4">
                                 <div class="font-medium"><?= htmlspecialchars($app['preferred_course']) ?></div>
-                                <div class="text-sm text-gray-500"><?= htmlspecialchars(($app['academic_year'] ?? '') . ' - ' . ($app['semester'] ?? '')) ?></div>
+                                <div class="text-sm text-gray-500">
+                                    <?= htmlspecialchars(($app['academic_year'] ?? '') . ' - ' . ($app['semester'] ?? '')) ?>
+                                </div>
                             </td>
                             <td class="px-4 py-4">
                                 <span class="capitalize"><?= htmlspecialchars($app['education_type'] ?? 'freshman') ?></span>
                             </td>
                             <td class="px-4 py-4">
                                 <?php
-                                $status_class = match($app['status']) {
+                                $status_class = match ($app['status']) {
                                     'pending' => 'bg-amber-100 text-amber-800',
                                     'approved' => 'bg-green-100 text-green-800',
                                     'rejected' => 'bg-red-100 text-red-800',
@@ -213,7 +255,8 @@ foreach ($applicants as $a) {
                                 <?= date('M d, Y', strtotime($app['created_at'])) ?>
                             </td>
                             <td class="px-4 py-4 text-right">
-                                <button onclick="viewApplication(<?= $app['id'] ?>)" class="text-blue-600 hover:underline text-sm">View Details</button>
+                                <button onclick="viewApplication(<?= $app['id'] ?>)"
+                                    class="text-blue-600 hover:underline text-sm">View Details</button>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -239,16 +282,16 @@ foreach ($applicants as $a) {
 </div>
 
 <script>
-const applicants = <?= json_encode(array_column($applicants, null, 'id')) ?>;
+    const applicants = <?= json_encode(array_column($applicants, null, 'id')) ?>;
 
-function viewApplication(id) {
-    const app = applicants[id];
-    if (!app) return;
-    
-    let actionForm = '';
-    
-    if (app.status === 'pending') {
-        actionForm = `
+    function viewApplication(id) {
+        const app = applicants[id];
+        if (!app) return;
+
+        let actionForm = '';
+
+        if (app.status === 'pending') {
+            actionForm = `
             <form method="POST" class="space-y-4">
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                 <input type="hidden" name="applicant_id" value="${id}">
@@ -283,9 +326,9 @@ function viewApplication(id) {
                 </div>
             </form>
         `;
-    }
-    
-    document.getElementById('modalContent').innerHTML = `
+        }
+
+        document.getElementById('modalContent').innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <h3 class="font-bold text-gray-900 mb-3">Personal Information</h3>
@@ -329,33 +372,34 @@ function viewApplication(id) {
         
         ${actionForm}
     `;
-    
-    document.getElementById('modalTitle').textContent = `${app.first_name} ${app.last_name}'s Application`;
-    document.getElementById('applicationModal').classList.remove('hidden');
-    document.getElementById('applicationModal').classList.add('flex');
-}
 
-function closeModal() {
-    document.getElementById('applicationModal').classList.add('hidden');
-    document.getElementById('applicationModal').classList.remove('flex');
-}
+        document.getElementById('modalTitle').textContent = `${app.first_name} ${app.last_name}'s Application`;
+        document.getElementById('applicationModal').classList.remove('hidden');
+        document.getElementById('applicationModal').classList.add('flex');
+    }
 
-function showRejectForm(id) {
-    document.getElementById('rejectForm' + id).classList.toggle('hidden');
-    document.getElementById('revisionForm' + id).classList.add('hidden');
-}
+    function closeModal() {
+        document.getElementById('applicationModal').classList.add('hidden');
+        document.getElementById('applicationModal').classList.remove('flex');
+    }
 
-function showRevisionForm(id) {
-    document.getElementById('revisionForm' + id).classList.toggle('hidden');
-    document.getElementById('rejectForm' + id).classList.add('hidden');
-}
+    function showRejectForm(id) {
+        document.getElementById('rejectForm' + id).classList.toggle('hidden');
+        document.getElementById('revisionForm' + id).classList.add('hidden');
+    }
 
-document.getElementById('applicationModal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-});
+    function showRevisionForm(id) {
+        document.getElementById('revisionForm' + id).classList.toggle('hidden');
+        document.getElementById('rejectForm' + id).classList.add('hidden');
+    }
+
+    document.getElementById('applicationModal').addEventListener('click', function (e) {
+        if (e.target === this) closeModal();
+    });
 </script>
 
 </main>
 </div>
 </body>
+
 </html>

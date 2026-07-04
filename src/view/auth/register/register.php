@@ -97,6 +97,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_application'])
         if (empty($preferred_course)) $errors[] = 'Please select a preferred course.';
         if (empty($academic_year_id)) $errors[] = 'Please select academic year.';
         
+        // Age validation
+        if (!empty($birthday)) {
+            $birthDate = new DateTime($birthday);
+            $today = new DateTime();
+            $age = $today->diff($birthDate)->y;
+            if ($age < 17) $errors[] = 'You must be at least 17 years old to enroll.';
+            elseif ($age > 100) $errors[] = 'Invalid age. Please check your birthdate.';
+        }
+        
         // Check for existing application
         try {
             $stmt = $pdo->prepare("SELECT id FROM applicants WHERE email = ? AND status = 'pending'");
@@ -136,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_application'])
                         previous_college, previous_course, last_year_level,
                         preferred_course, second_course, semester, academic_year,
                         status
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 
                 $stmt->execute([
