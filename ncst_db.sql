@@ -357,6 +357,35 @@ COMMIT;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
 --
+-- Table structure for table `shs_tracks`
+--
+
+CREATE TABLE `shs_tracks` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `track_name` varchar(100) NOT NULL,
+  `track_code` varchar(50) NOT NULL,
+  `description` text DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `track_code` (`track_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `shs_tracks`
+--
+
+INSERT INTO `shs_tracks` (`id`, `track_name`, `track_code`, `description`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'Science, Technology, Engineering, and Mathematics', 'STEM', 'Science, Technology, Engineering, and Mathematics strand focuses on advanced science and math courses.', 1, '2026-07-04 09:12:54', '2026-07-04 09:12:54'),
+(2, 'Humanities and Social Sciences', 'HUMSS', 'Humanities and Social Sciences strand focuses on literature, arts, and social sciences.', 1, '2026-07-04 09:12:54', '2026-07-04 09:12:54'),
+(3, 'Accountancy, Business and Management', 'ABM', 'Accountancy, Business and Management strand focuses on business and entrepreneurship.', 1, '2026-07-04 09:12:54', '2026-07-04 09:12:54'),
+(4, 'Technical-Vocational Livelihood', 'TVL', 'Technical-Vocational Livelihood strand focuses on practical skills and technical courses.', 1, '2026-07-04 09:12:54', '2026-07-04 09:12:54'),
+(5, 'General Academic', 'GA', 'General Academic strand provides a balanced mix of academic subjects.', 1, '2026-07-04 09:12:54', '2026-07-04 09:12:54'),
+(6, 'Sports', 'Sports', 'Sports strand focuses on physical education and sports-related activities.', 1, '2026-07-04 09:12:54', '2026-07-04 09:12:54'),
+(7, 'Arts and Design', 'Arts', 'Arts and Design strand focuses on creative arts and design disciplines.', 1, '2026-07-04 09:12:54', '2026-07-04 09:12:54');
+
+--
 -- Table structure for table `document_paths`
 --
 

@@ -74,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_application'])
         $education_type = trim($_POST['education_type'] ?? 'freshman');
         $highschool_name = trim($_POST['highschool_name'] ?? '');
         $highschool_address = trim($_POST['highschool_address'] ?? '');
+        $shs_track = trim($_POST['shs_track'] ?? '');
         $shs_strand = trim($_POST['shs_strand'] ?? '');
         $year_graduated = trim($_POST['year_graduated'] ?? '');
         $lrn = trim($_POST['lrn'] ?? '');
@@ -152,49 +153,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_application'])
                         civil_status, nationality, religion, birth_place,
                         email, contact_number, home_address, province, city, barangay, zip_code,
                         father_name, mother_name, guardian_name, guardian_contact, guardian_relationship,
-                        education_type, highschool_name, highschool_address, shs_strand, year_graduated, lrn,
+                        education_type, highschool_name, highschool_address, shs_track, shs_strand, year_graduated, lrn,
                         previous_college, previous_course, last_year_level,
                         preferred_course, second_course, semester, academic_year,
                         status
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
 
                 $stmt->execute([
-                    $first_name,
-                    $middle_name,
-                    $last_name,
-                    $suffix,
-                    $birthday,
-                    $gender,
-                    $civil_status,
-                    $nationality,
-                    $religion,
-                    $birth_place,
-                    $email,
-                    $contact_number,
-                    $home_address,
-                    $province,
-                    $city,
-                    $barangay,
-                    $zip_code,
-                    $father_name,
-                    $mother_name,
-                    $guardian_name,
-                    $guardian_contact,
-                    $guardian_relationship,
-                    $education_type,
-                    $highschool_name,
-                    $highschool_address,
-                    $shs_strand,
-                    $year_graduated,
-                    $lrn,
-                    $previous_college,
-                    $previous_course,
-                    $last_year_level,
-                    $preferred_course,
-                    $second_course,
-                    $academicYearInfo['semester'] ?? '1st Semester',
-                    $academicYearInfo['year'] ?? '2026-2027',
+                    $first_name, $middle_name, $last_name, $suffix, $birthday, $gender,
+                    $civil_status, $nationality, $religion, $birth_place,
+                    $email, $contact_number, $home_address, $province, $city, $barangay, $zip_code,
+                    $father_name, $mother_name, $guardian_name, $guardian_contact, $guardian_relationship,
+                    $education_type, $highschool_name, $highschool_address, $shs_track, $shs_strand, $year_graduated, $lrn,
+                    $previous_college, $previous_course, $last_year_level,
+                    $preferred_course, $second_course,
+                    $academicYearInfo['semester'] ?? '1st Semester', $academicYearInfo['year'] ?? '2026-2027',
                     'pending'
                 ]);
 
@@ -688,20 +662,27 @@ $step_labels = [
                                             placeholder="Complete school address">
                                     </div>
                                     <div class="relative border border-black/10 rounded-xl px-4 py-2 bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">SHS Track</label>
+                                        <select name="shs_track" class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
+                                            <option value="">Select Track</option>
+                                            <option value="Academic" <?= ($old['shs_track'] ?? '') === 'Academic' ? 'selected' : '' ?>>Academic</option>
+                                            <option value="Technical-Vocational" <?= ($old['shs_track'] ?? '') === 'Technical-Vocational' ? 'selected' : '' ?>>Technical-Vocational</option>
+                                            <option value="Sports" <?= ($old['shs_track'] ?? '') === 'Sports' ? 'selected' : '' ?>>Sports</option>
+                                            <option value="Arts and Design" <?= ($old['shs_track'] ?? '') === 'Arts and Design' ? 'selected' : '' ?>>Arts and Design</option>
+                                        </select>
+                                    </div>
+                                    <div class="relative border border-black/10 rounded-xl px-4 py-2 bg-black/5">
                                         <label class="text-xs font-medium text-black/50">SHS Strand</label>
                                         <select name="shs_strand"
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
                                             <option value="">Select Strand</option>
                                             <option value="STEM" <?= ($old['shs_strand'] ?? '') === 'STEM' ? 'selected' : '' ?>>STEM</option>
-                                            <option value="ABM" <?= ($old['shs_strand'] ?? '') === 'ABM' ? 'selected' : '' ?>>
-                                                ABM</option>
                                             <option value="HUMSS" <?= ($old['shs_strand'] ?? '') === 'HUMSS' ? 'selected' : '' ?>>HUMSS</option>
-                                            <option value="GAS" <?= ($old['shs_strand'] ?? '') === 'GAS' ? 'selected' : '' ?>>
-                                                GAS</option>
-                                            <option value="TVL" <?= ($old['shs_strand'] ?? '') === 'TVL' ? 'selected' : '' ?>>
-                                                TVL</option>
-                                            <option value="Arts and Design" <?= ($old['shs_strand'] ?? '') === 'Arts and Design' ? 'selected' : '' ?>>Arts and Design</option>
+                                            <option value="ABM" <?= ($old['shs_strand'] ?? '') === 'ABM' ? 'selected' : '' ?>>ABM</option>
+                                            <option value="TVL" <?= ($old['shs_strand'] ?? '') === 'TVL' ? 'selected' : '' ?>>TVL</option>
+                                            <option value="GAS" <?= ($old['shs_strand'] ?? '') === 'GAS' ? 'selected' : '' ?>>GAS</option>
                                             <option value="Sports" <?= ($old['shs_strand'] ?? '') === 'Sports' ? 'selected' : '' ?>>Sports</option>
+                                            <option value="Arts" <?= ($old['shs_strand'] ?? '') === 'Arts' ? 'selected' : '' ?>>Arts</option>
                                         </select>
                                     </div>
                                     <div
