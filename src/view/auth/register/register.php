@@ -623,27 +623,92 @@ $step_labels = [
                                 <label class="text-sm font-medium text-gray-700 mb-2 block">Education Type</label>
                                 <div class="flex flex-wrap gap-4">
                                     <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="radio" name="education_type" value="freshman"
-                                            <?= ($old['education_type'] ?? 'freshman') === 'freshman' ? 'checked' : '' ?>
+                                        <input type="radio" name="education_type" value="senior_high"
+                                            <?= ($old['education_type'] ?? '') === 'senior_high' ? 'checked' : '' ?>
                                             onchange="toggleEducationFields()">
-                                        <span class="text-sm">Freshman</span>
+                                        <span class="text-sm">Senior High School</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="education_type" value="college_freshman"
+                                            <?= ($old['education_type'] ?? '') === 'college_freshman' ? 'checked' : '' ?>
+                                            onchange="toggleEducationFields()">
+                                        <span class="text-sm">College (Freshman)</span>
                                     </label>
                                     <label class="flex items-center gap-2 cursor-pointer">
                                         <input type="radio" name="education_type" value="transferee"
                                             <?= ($old['education_type'] ?? '') === 'transferee' ? 'checked' : '' ?>
                                             onchange="toggleEducationFields()">
-                                        <span class="text-sm">Transferee</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="radio" name="education_type" value="shiftee" <?= ($old['education_type'] ?? '') === 'shiftee' ? 'checked' : '' ?> onchange="toggleEducationFields()">
-                                        <span class="text-sm">Shiftee</span>
+                                        <span class="text-sm">College (Transferee)</span>
                                     </label>
                                 </div>
                             </div>
 
-                            <!-- Freshman Fields -->
-                            <div id="freshmanFields"
-                                class="education-section <?= ($old['education_type'] ?? 'freshman') === 'freshman' ? 'active' : '' ?>">
+                            <!-- Senior High School Fields -->
+                            <div id="seniorHighFields"
+                                class="education-section <?= ($old['education_type'] ?? '') === 'senior_high' ? 'active' : '' ?>">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div
+                                        class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">Junior High School Name</label>
+                                        <input type="text" name="highschool_name"
+                                            value="<?= htmlspecialchars($old['highschool_name'] ?? '') ?>"
+                                            class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
+                                            placeholder="Name of your school">
+                                    </div>
+                                    <div
+                                        class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">School Address</label>
+                                        <input type="text" name="highschool_address"
+                                            value="<?= htmlspecialchars($old['highschool_address'] ?? '') ?>"
+                                            class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
+                                            placeholder="Complete school address">
+                                    </div>
+                                    <div class="relative border border-black/10 rounded-xl px-4 py-2 bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">SHS Track</label>
+                                        <select name="shs_track" class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
+                                            <option value="">Select Track</option>
+                                            <option value="Academic" <?= ($old['shs_track'] ?? '') === 'Academic' ? 'selected' : '' ?>>Academic</option>
+                                            <option value="Technical-Vocational" <?= ($old['shs_track'] ?? '') === 'Technical-Vocational' ? 'selected' : '' ?>>Technical-Vocational</option>
+                                            <option value="Sports" <?= ($old['shs_track'] ?? '') === 'Sports' ? 'selected' : '' ?>>Sports</option>
+                                            <option value="Arts and Design" <?= ($old['shs_track'] ?? '') === 'Arts and Design' ? 'selected' : '' ?>>Arts and Design</option>
+                                        </select>
+                                    </div>
+                                    <div class="relative border border-black/10 rounded-xl px-4 py-2 bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">SHS Strand</label>
+                                        <select name="shs_strand" id="shs_strand"
+                                            class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
+                                            <option value="">Select Strand</option>
+                                            <option value="STEM" <?= ($old['shs_strand'] ?? '') === 'STEM' ? 'selected' : '' ?>>STEM</option>
+                                            <option value="HUMSS" <?= ($old['shs_strand'] ?? '') === 'HUMSS' ? 'selected' : '' ?>>HUMSS</option>
+                                            <option value="ABM" <?= ($old['shs_strand'] ?? '') === 'ABM' ? 'selected' : '' ?>>ABM</option>
+                                            <option value="TVL" <?= ($old['shs_strand'] ?? '') === 'TVL' ? 'selected' : '' ?>>TVL</option>
+                                            <option value="GAS" <?= ($old['shs_strand'] ?? '') === 'GAS' ? 'selected' : '' ?>>GAS</option>
+                                            <option value="Sports" <?= ($old['shs_strand'] ?? '') === 'Sports' ? 'selected' : '' ?>>Sports</option>
+                                            <option value="Arts" <?= ($old['shs_strand'] ?? '') === 'Arts' ? 'selected' : '' ?>>Arts</option>
+                                        </select>
+                                    </div>
+                                    <div
+                                        class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">Year Graduated</label>
+                                        <input type="text" name="year_graduated"
+                                            value="<?= htmlspecialchars($old['year_graduated'] ?? '') ?>"
+                                            class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
+                                            placeholder="2026">
+                                    </div>
+                                    <div
+                                        class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">LRN (Learner Reference Number)</label>
+                                        <input type="text" name="lrn" value="<?= htmlspecialchars($old['lrn'] ?? '') ?>"
+                                            maxlength="12"
+                                            class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
+                                            placeholder="12-digit LRN">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- College Freshman Fields -->
+                            <div id="collegeFreshmanFields"
+                                class="education-section <?= ($old['education_type'] ?? '') === 'college_freshman' ? 'active' : '' ?>">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div
                                         class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
@@ -694,9 +759,8 @@ $step_labels = [
                                             placeholder="2026">
                                     </div>
                                     <div
-                                        class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">LRN (Learner Reference
-                                            Number)</label>
+                                        class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">LRN (Learner Reference Number)</label>
                                         <input type="text" name="lrn" value="<?= htmlspecialchars($old['lrn'] ?? '') ?>"
                                             maxlength="12"
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
@@ -705,7 +769,7 @@ $step_labels = [
                                 </div>
                             </div>
 
-                            <!-- Transferee Fields -->
+                            <!-- College Transferee Fields -->
                             <div id="transfereeFields"
                                 class="education-section <?= ($old['education_type'] ?? '') === 'transferee' ? 'active' : '' ?>">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1083,8 +1147,9 @@ $step_labels = [
         }
 
         function toggleEducationFields() {
-            const educationType = document.querySelector('input[name="education_type"]:checked')?.value || 'freshman';
-            document.getElementById('freshmanFields').classList.toggle('active', educationType === 'freshman');
+            const educationType = document.querySelector('input[name="education_type"]:checked')?.value || '';
+            document.getElementById('seniorHighFields').classList.toggle('active', educationType === 'senior_high');
+            document.getElementById('collegeFreshmanFields').classList.toggle('active', educationType === 'college_freshman');
             document.getElementById('transfereeFields').classList.toggle('active', educationType === 'transferee');
         }
 

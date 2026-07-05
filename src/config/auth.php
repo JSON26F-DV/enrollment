@@ -8,7 +8,15 @@ function check_admin() {
 }
 
 function check_student() {
-    return check_logged_in() && isset($_SESSION['role']) && $_SESSION['role'] === 'student';
+    return check_logged_in() && isset($_SESSION['role']) && in_array($_SESSION['role'], ['shs', 'college']);
+}
+
+function check_shs() {
+    return check_logged_in() && isset($_SESSION['role']) && $_SESSION['role'] === 'shs';
+}
+
+function check_college() {
+    return check_logged_in() && isset($_SESSION['role']) && $_SESSION['role'] === 'college';
 }
 
 function check_staff() {

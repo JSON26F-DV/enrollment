@@ -227,7 +227,7 @@ CREATE TABLE `users` (
   `barangay` varchar(100) DEFAULT NULL,
   `zip_code` varchar(10) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
-  `role` enum('admin','staff','student','registrar') NOT NULL DEFAULT 'student',
+  `role` enum('admin','staff','shs','college','registrar') NOT NULL DEFAULT 'college',
   `status` enum('active','inactive','pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `deleted_at` date DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,

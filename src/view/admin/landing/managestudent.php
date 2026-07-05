@@ -78,8 +78,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
                 $success = 'Student updated successfully!';
             } else {
                 $hashed = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("INSERT INTO users (first_name, last_name, birthday, gender, contact_number, email, password, role, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'student', ?)");
-                $stmt->execute([$first_name, $last_name, $birthday, $gender, $contact_number, $email, $hashed, $status]);
+                $role = trim($_POST['role'] ?? 'college');
+                $stmt = $pdo->prepare("INSERT INTO users (first_name, last_name, birthday, gender, contact_number, email, password, role, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$first_name, $last_name, $birthday, $gender, $contact_number, $email, $hashed, $role, $status]);
                 $success = 'Student registered successfully!';
                 $old = [];
             }
@@ -186,6 +187,17 @@ $page_title = $is_edit ? 'Edit Student' : 'Register Student';
                                 <option value="inactive" <?= (($old['status'] ?? ($is_edit ? $user['status'] : 'active')) === 'inactive') ? 'selected' : '' ?>>Inactive</option>
                             </select>
                         </div>
+                        <?php if (!$is_edit): ?>
+                        <div
+                            class="relative border border-black/10 rounded-xl px-4 py-2 bg-black/5">
+                            <label class="text-xs font-medium text-black/50">Student Type</label>
+                            <select name="role"
+                                class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
+                                <option value="college" <?= (($old['role'] ?? '') === 'college') ? 'selected' : '' ?>>College</option>
+                                <option value="shs" <?= (($old['role'] ?? '') === 'shs') ? 'selected' : '' ?>>Senior High School</option>
+                            </select>
+                        </div>
+                        <?php endif; ?>
                     </div>
 
                     <div
