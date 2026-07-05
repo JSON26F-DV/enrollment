@@ -805,8 +805,8 @@ $step_labels = [
                             </div>
                         </div>
 
-                        <!-- Step 5: Course Selection -->
-                        <div class="step-content" data-step="5">
+                        <!-- Step 5: Course Selection (Only for College) -->
+                        <div id="courseSelectionStep" class="step-content <?= ($old['education_type'] ?? '') === 'senior_high' ? 'hidden' : '' ?>" data-step="5">
                             <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                                 <span
                                     class="w-6 h-6 rounded-full bg-google-blue text-white text-xs flex items-center justify-center">5</span>
@@ -815,7 +815,7 @@ $step_labels = [
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 bg-black/5">
                                     <label class="text-xs font-medium text-black/50">Preferred Course *</label>
-                                    <select name="preferred_course" required
+                                    <select name="preferred_course" id="preferred_course" required
                                         class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
                                         <option value="">Select Course</option>
                                         <?php foreach ($courses as $course): ?>
@@ -1151,6 +1151,8 @@ $step_labels = [
             document.getElementById('seniorHighFields').classList.toggle('active', educationType === 'senior_high');
             document.getElementById('collegeFreshmanFields').classList.toggle('active', educationType === 'college_freshman');
             document.getElementById('transfereeFields').classList.toggle('active', educationType === 'transferee');
+            // Hide course selection for Senior High
+            document.getElementById('courseSelectionStep').classList.toggle('hidden', educationType === 'senior_high');
         }
 
         function updateFileName(input) {

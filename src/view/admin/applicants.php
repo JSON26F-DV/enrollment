@@ -52,6 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         ");
 
+                        // Set role based on education_type: senior_high = shs, otherwise = college
+                        $role = ($applicant['education_type'] === 'senior_high') ? 'shs' : 'college';
+
                         $stmt->execute([
                             $applicant['first_name'],
                             $applicant['middle_name'],
@@ -71,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                             $applicant['barangay'],
                             $applicant['zip_code'],
                             $hashed_password,
-                            'student',
+                            $role,
                             'active',
                             $_SESSION['user_id']
                         ]);
@@ -81,10 +84,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                         $stmt = $pdo->prepare("
                             INSERT INTO students (
                                 user_id, father_name, mother_name, guardian_name, guardian_contact, guardian_relationship,
-                                education_type, highschool_name, highschool_address, shs_strand, year_graduated, lrn,
+                                education_type, highschool_name, highschool_address, shs_track, shs_strand, year_graduated, lrn,
                                 previous_college, previous_course, last_year_level,
                                 preferred_course, second_course, semester, academic_year
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         ");
 
                         $stmt->execute([
@@ -97,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                             $applicant['education_type'],
                             $applicant['highschool_name'],
                             $applicant['highschool_address'],
+                            $applicant['shs_track'],
                             $applicant['shs_strand'],
                             $applicant['year_graduated'],
                             $applicant['lrn'],
