@@ -5,6 +5,23 @@ require_once __DIR__ . '/sidebar.php';
 $errors = [];
 $success = '';
 
+// Handle document status update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_doc_status'])) {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        $errors[] = 'Invalid session token.';
+    } else {
+        $doc_id = (int) ($_POST['doc_id'] ?? 0);
+        $status = $_POST['doc_status'] ?? '';
+        $notes = trim($_POST['doc_notes'] ?? '');
+
+        if ($doc_id && in_array($status, ['pending', 'submitted', 'approved', 'rejected'])) {
+            $stmt = $pdo->prepare("UPDATE applicant_documents SET status = ?, notes = ? WHERE id = ?");
+            $stmt->execute([$status, $notes, $doc_id]);
+            $success = 'Document status updated.';
+        }
+    }
+}
+
 // Handle status update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
@@ -92,6 +109,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                             $applicant['academic_year']
                         ]);
 
+                        // Move documents from /applicants/ to /students/
+                        $stmt = $pdo->prepare("SELECT * FROM applicant_documents WHERE applicant_id = ?");
+                        $stmt->execute([$applicant_id]);
+                        $docs = $stmt->fetchAll();
+
+                        $student_upload_path = get_document_path('student_document') ?: '/assets/uploads/documents/students/';
+                        $student_upload_dir = PROJECT_ROOT . $student_upload_path;
+                        if (!is_dir($student_upload_dir)) {
+                            mkdir($student_upload_dir, 0755, true);
+                        }
+
+                        foreach ($docs as $doc) {
+                            $old_file = PROJECT_ROOT . ltrim($doc['file_path'], '/');
+                            if (file_exists($old_file)) {
+                                $new_file_path = $student_upload_path . basename($doc['file_path']);
+                                $new_file_full = PROJECT_ROOT . ltrim($new_file_path, '/');
+                                if (copy($old_file, $new_file_full)) {
+                                    $stmt_upd = $pdo->prepare("UPDATE applicant_documents SET file_path = ? WHERE id = ?");
+                                    $stmt_upd->execute([$new_file_path, $doc['id']]);
+                                }
+                            }
+                        }
+
                         $stmt = $pdo->prepare("
                             UPDATE applicants SET status = 'approved', reviewed_by = ?, reviewed_at = NOW(), user_id = ?
                             WHERE id = ?
@@ -119,6 +159,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     }
 }
 
+// Get document types for labels
+$doc_type_labels = [
+    'psa_birth_certificate' => 'PSA Birth Certificate',
+    'form_138' => 'Form 138 / Report Card',
+    'good_moral' => 'Good Moral Certificate',
+    'certificate_of_graduation' => 'Certificate of Graduation',
+    'id_photo_2x2' => 'ID Photo (2x2)',
+    'valid_id' => 'Valid ID',
+    'tor' => 'Transcript of Records',
+    'honorable_dismissal' => 'Honorable Dismissal',
+    'other' => 'Other',
+];
+
+$doc_quick_notes = [
+    'Need verification — refer to OSA' => 'For OSA review and verification of documents.',
+    'Need resubmit — unclear copy' => 'Document is unclear. Please resubmit a clearer copy.',
+    'Need resubmit — incomplete' => 'Document is incomplete. Please resubmit the complete version.',
+    'Under review' => 'Document is currently under review.',
+    'Approved — all clear' => 'Document has been verified and approved.',
+];
+
 // Get filter
 $status_filter = $_GET['status'] ?? 'pending';
 
@@ -136,6 +197,21 @@ try {
     $applicants = $pdo->query($query)->fetchAll();
 } catch (Exception $e) {
     $applicants = [];
+}
+
+// Get documents per applicant
+$applicant_docs = [];
+if (!empty($applicants)) {
+    $ids = array_column($applicants, 'id');
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM applicant_documents WHERE applicant_id IN ($placeholders) ORDER BY created_at DESC");
+        $stmt->execute(array_values($ids));
+        foreach ($stmt->fetchAll() as $doc) {
+            $applicant_docs[$doc['applicant_id']][] = $doc;
+        }
+    } catch (Exception $e) {
+    }
 }
 
 // Get counts
@@ -283,13 +359,72 @@ foreach ($applicants as $a) {
 
 <script>
     const applicants = <?= json_encode(array_column($applicants, null, 'id')) ?>;
+    const applicantDocs = <?= json_encode($applicant_docs) ?>;
+    const docTypeLabels = <?= json_encode($doc_type_labels) ?>;
+    const quickNotes = <?= json_encode($doc_quick_notes) ?>;
+    const csrfToken = '<?= $_SESSION['csrf_token'] ?>';
+
+    function statusBadge(status) {
+        const map = {
+            'pending': { cls: 'bg-gray-100 text-gray-800', label: 'Pending' },
+            'submitted': { cls: 'bg-blue-100 text-blue-800', label: 'Submitted' },
+            'approved': { cls: 'bg-green-100 text-green-800', label: 'Approved' },
+            'rejected': { cls: 'bg-red-100 text-red-800', label: 'Rejected' },
+        };
+        const s = map[status] || map['pending'];
+        return `<span class="px-2 py-0.5 rounded-full text-xs font-medium ${s.cls}">${s.label}</span>`;
+    }
+
+    function setDocQuickNote(selectId, noteInputId) {
+        const val = document.getElementById(selectId).value;
+        document.getElementById(noteInputId).value = val;
+    }
 
     function viewApplication(id) {
         const app = applicants[id];
         if (!app) return;
 
-        let actionForm = '';
+        const docs = applicantDocs[id] || [];
 
+        // Documents section
+        let docsHtml = '<p class="text-sm text-gray-500">No documents uploaded.</p>';
+        if (docs.length > 0) {
+            docsHtml = docs.map(d => `
+                <div class="border border-gray-200 rounded-lg p-3">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900">${docTypeLabels[d.document_type] || d.document_type.replace(/_/g, ' ')}</p>
+                            <a href="<?= url('/') ?>${d.file_path}" target="_blank" class="text-xs text-blue-600 hover:underline">${d.file_name}</a>
+                            <div class="mt-1">${statusBadge(d.status || 'pending')}</div>
+                            ${d.notes ? `<p class="text-xs text-gray-500 mt-1 italic">${d.notes}</p>` : ''}
+                        </div>
+                    </div>
+                    <form method="POST" class="mt-2 space-y-2">
+                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                        <input type="hidden" name="update_doc_status" value="1">
+                        <input type="hidden" name="doc_id" value="${d.id}">
+                        <div class="flex gap-2 items-start">
+                            <select name="doc_status" class="text-xs px-2 py-1 border rounded">
+                                <option value="pending" ${(d.status||'pending')==='pending'?'selected':''}>Pending</option>
+                                <option value="submitted" ${d.status==='submitted'?'selected':''}>Submitted</option>
+                                <option value="approved" ${d.status==='approved'?'selected':''}>Approved</option>
+                                <option value="rejected" ${d.status==='rejected'?'selected':''}>Rejected</option>
+                            </select>
+                            <button type="submit" class="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Update</button>
+                        </div>
+                        <div class="flex gap-1 flex-wrap">
+                            ${Object.keys(quickNotes).map(note => `
+                                <button type="button" onclick="document.getElementById('notes_${d.id}').value='${quickNotes[note].replace(/'/g, "\\'")}'" class="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">${note}</button>
+                            `).join('')}
+                        </div>
+                        <textarea name="doc_notes" id="notes_${d.id}" rows="2" class="w-full text-xs px-2 py-1 border rounded" placeholder="Add notes...">${d.notes || ''}</textarea>
+                    </form>
+                </div>
+            `).join('');
+        }
+
+        // Overall action form
+        let actionForm = '';
         if (app.status === 'pending') {
             actionForm = `
             <form method="POST" class="space-y-4">
@@ -301,7 +436,7 @@ foreach ($applicants as $a) {
                     <h3 class="font-bold text-gray-900 mb-3">Take Action</h3>
                     
                     <div class="flex flex-wrap gap-3">
-                        <button type="submit" name="action" value="approve" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700">
+                        <button type="submit" name="action" value="approve" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700" onclick="return confirm('Approve this application? A student account will be created.')">
                             ✓ Approve Application
                         </button>
                         <button type="button" onclick="showRejectForm(${id})" class="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700">
@@ -367,6 +502,13 @@ foreach ($applicants as $a) {
                     <div><span class="text-gray-500">Academic Year:</span> <span class="font-medium">${app.academic_year || '-'}</span></div>
                     <div><span class="text-gray-500">Semester:</span> <span class="font-medium">${app.semester || '-'}</span></div>
                 </dl>
+            </div>
+        </div>
+
+        <div class="border-t pt-4 mt-4">
+            <h3 class="font-bold text-gray-900 mb-3">Documents</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                ${docsHtml}
             </div>
         </div>
         

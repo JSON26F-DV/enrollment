@@ -1,4 +1,6 @@
 <?php
+define('PROJECT_ROOT', dirname(__DIR__, 2));
+
 require_once __DIR__ . '/session.php';
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/helpers.php';

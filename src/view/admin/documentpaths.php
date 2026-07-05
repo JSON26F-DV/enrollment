@@ -55,6 +55,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $success = 'Document path created successfully!';
                         }
                     }
+
+                    // Create directory on filesystem if no errors so far
+                    if (empty($errors)) {
+                        $dir_path = PROJECT_ROOT . $path_value;
+                        if (!is_dir($dir_path)) {
+                            if (!mkdir($dir_path, 0755, true)) {
+                                $errors[] = "Path saved but failed to create directory: $path_value. Check filesystem permissions.";
+                            } else {
+                                // Create index.html to prevent directory listing
+                                $index_file = rtrim($dir_path, '/') . '/index.html';
+                                if (!file_exists($index_file)) {
+                                    file_put_contents($index_file, '<!DOCTYPE html><title></title>');
+                                }
+                            }
+                        }
+                    }
                 } catch (PDOException $e) {
                     $errors[] = 'Database error: ' . $e->getMessage();
                 }

@@ -14,6 +14,18 @@ $student = [];
 $applicant_id = null;
 $documents = [];
 
+$doc_type_labels = [
+    'psa_birth_certificate' => 'PSA Birth Certificate',
+    'form_138' => 'Form 138 / Report Card',
+    'good_moral' => 'Good Moral Certificate',
+    'certificate_of_graduation' => 'Certificate of Graduation',
+    'id_photo_2x2' => 'ID Photo (2x2)',
+    'valid_id' => 'Valid ID',
+    'tor' => 'Transcript of Records',
+    'honorable_dismissal' => 'Honorable Dismissal',
+    'other' => 'Other',
+];
+
 if ($is_edit) {
     try {
         $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? AND role = 'student'");
@@ -221,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_doc'])) {
 
                         // Get upload path from database (falls back to default)
                         $upload_path = get_document_path('student_document') ?? '/assets/uploads/documents/students/';
-                        $upload_dir = $_SERVER['DOCUMENT_ROOT'] . $upload_path;
+                        $upload_dir = PROJECT_ROOT . $upload_path;
                         if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
 
                         $filename = $document_type . '_' . $edit_id . '_' . time() . '.' . $ext;
@@ -249,6 +261,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_doc'])) {
     }
 }
 
+// Handle document status update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_doc_status'])) {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        $errors[] = 'Invalid session token.';
+    } else {
+        $doc_id = (int) ($_POST['doc_id'] ?? 0);
+        $status = $_POST['doc_status'] ?? '';
+        $notes = trim($_POST['doc_notes'] ?? '');
+
+        if ($doc_id && in_array($status, ['pending', 'submitted', 'approved', 'rejected'])) {
+            $stmt = $pdo->prepare("UPDATE applicant_documents SET status = ?, notes = ? WHERE id = ?");
+            $stmt->execute([$status, $notes, $doc_id]);
+            $success = 'Document status updated.';
+
+            if ($applicant_id) {
+                $stmt = $pdo->prepare("SELECT * FROM applicant_documents WHERE applicant_id = ? ORDER BY created_at DESC");
+                $stmt->execute([$applicant_id]);
+                $documents = $stmt->fetchAll();
+            }
+        }
+    }
+}
+
 // Handle document delete
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_doc'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
@@ -260,7 +295,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_doc'])) {
             $stmt->execute([$doc_id]);
             $doc = $stmt->fetch();
             if ($doc) {
-                $file_path = $_SERVER['DOCUMENT_ROOT'] . $doc['file_path'];
+                $file_path = PROJECT_ROOT . $doc['file_path'];
                 if (file_exists($file_path)) unlink($file_path);
                 $stmt = $pdo->prepare("DELETE FROM applicant_documents WHERE id = ?");
                 $stmt->execute([$doc_id]);
@@ -276,6 +311,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_doc'])) {
         } catch (PDOException $e) {
             $errors[] = 'Database error: ' . $e->getMessage();
         }
+    }
+}
+
+// Handle soft delete (requires admin password)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['soft_delete'])) {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        $errors[] = 'Invalid session token.';
+    } elseif (!$is_edit) {
+        $errors[] = 'Student not found.';
+    } else {
+        $admin_password = $_POST['admin_password'] ?? '';
+        $stmt = $pdo->prepare("SELECT password FROM users WHERE id = ? AND role = 'admin'");
+        $stmt->execute([$_SESSION['user_id']]);
+        $admin = $stmt->fetch();
+
+        if (!$admin || !password_verify($admin_password, $admin['password'])) {
+            $errors[] = 'Invalid admin password.';
+        } else {
+            $stmt = $pdo->prepare("UPDATE users SET deleted_at = CURDATE(), status = 'pending' WHERE id = ? AND role = 'student'");
+            $stmt->execute([$edit_id]);
+            $success = 'Student has been soft-deleted. Account will be permanently removed after 30 days.';
+            // Refresh user data
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+            $stmt->execute([$edit_id]);
+            $user = $stmt->fetch();
+        }
+    }
+}
+
+// Handle restore
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['restore_student'])) {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        $errors[] = 'Invalid session token.';
+    } elseif (!$is_edit) {
+        $errors[] = 'Student not found.';
+    } else {
+        $stmt = $pdo->prepare("UPDATE users SET deleted_at = NULL, status = 'active' WHERE id = ? AND role = 'student'");
+        $stmt->execute([$edit_id]);
+        $success = 'Student account restored successfully.';
+        // Refresh user data
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->execute([$edit_id]);
+        $user = $stmt->fetch();
     }
 }
 
@@ -584,6 +662,19 @@ try {
         </button>
         <a href="<?= url('/src/view/admin/students.php') ?>"
             class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">Cancel</a>
+        <?php if ($is_edit): ?>
+            <?php if (!empty($user['deleted_at'])): ?>
+                <form method="POST" class="inline" onsubmit="return confirm('Restore this student account?')">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <input type="hidden" name="restore_student" value="1">
+                    <button type="submit"
+                        class="px-6 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">Restore Account</button>
+                </form>
+            <?php else: ?>
+                <button type="button" onclick="openDeleteModal()"
+                    class="px-6 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">Delete Student</button>
+            <?php endif; ?>
+        <?php endif; ?>
     </div>
 </form>
 
@@ -644,15 +735,24 @@ try {
                         <th class="text-left py-2 px-2 text-xs font-medium text-gray-500 uppercase">File Name</th>
                         <th class="text-left py-2 px-2 text-xs font-medium text-gray-500 uppercase">Size</th>
                         <th class="text-left py-2 px-2 text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="text-left py-2 px-2 text-xs font-medium text-gray-500 uppercase">Notes</th>
                         <th class="text-right py-2 px-2 text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($documents as $d): ?>
+                    <?php foreach ($documents as $d):
+                        $status = $d['status'] ?? 'pending';
+                        $status_class = match ($status) {
+                            'approved' => 'bg-green-100 text-green-800',
+                            'rejected' => 'bg-red-100 text-red-800',
+                            'submitted' => 'bg-blue-100 text-blue-800',
+                            default => 'bg-gray-100 text-gray-800'
+                        };
+                    ?>
                         <tr class="border-b border-gray-100">
-                            <td class="py-3 px-2 capitalize"><?= htmlspecialchars($doc_types[$d['document_type']] ?? str_replace('_', ' ', $d['document_type'])) ?></td>
+                            <td class="py-3 px-2 capitalize"><?= htmlspecialchars($doc_type_labels[$d['document_type']] ?? str_replace('_', ' ', $d['document_type'])) ?></td>
                             <td class="py-3 px-2">
-                                <a href="<?= htmlspecialchars($d['file_path']) ?>" target="_blank" class="text-blue-600 hover:underline"><?= htmlspecialchars($d['file_name']) ?></a>
+                                <a href="<?= htmlspecialchars(url($d['file_path'])) ?>" target="_blank" class="text-blue-600 hover:underline"><?= htmlspecialchars($d['file_name']) ?></a>
                             </td>
                             <td class="py-3 px-2 text-gray-500">
                                 <?php
@@ -661,11 +761,16 @@ try {
                                 ?>
                             </td>
                             <td class="py-3 px-2">
-                                <span class="px-2 py-0.5 rounded-full text-xs font-medium <?= $d['is_verified'] ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800' ?>">
-                                    <?= $d['is_verified'] ? 'Verified' : 'Unverified' ?>
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium <?= $status_class ?>">
+                                    <?= ucfirst($status) ?>
                                 </span>
                             </td>
-                            <td class="py-3 px-2 text-right space-x-2">
+                            <td class="py-3 px-2 text-xs text-gray-500 max-w-[150px] truncate">
+                                <?= htmlspecialchars($d['notes'] ?? '') ?: '<span class="text-gray-300">—</span>' ?>
+                            </td>
+                            <td class="py-3 px-2 text-right space-x-1">
+                                <button type="button" onclick="editDocStatus(<?= $d['id'] ?>, '<?= $status ?>', '<?= htmlspecialchars($d['notes'] ?? '', ENT_QUOTES) ?>')"
+                                    class="text-blue-600 hover:underline text-xs">Edit</button>
                                 <form method="POST" class="inline" onsubmit="return confirm('Delete this document?')">
                                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                                     <input type="hidden" name="delete_doc" value="1">
@@ -681,6 +786,141 @@ try {
     <?php endif; ?>
 </div>
 <?php endif; ?>
+
+<!-- Document Status Edit Modal -->
+<div id="docStatusModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full m-4">
+        <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+            <h2 class="text-lg font-bold" id="docModalTitle">Edit Document Status</h2>
+            <button onclick="closeDocModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <form method="POST" class="p-6 space-y-4">
+            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+            <input type="hidden" name="update_doc_status" value="1">
+            <input type="hidden" name="doc_id" id="docStatusDocId">
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select name="doc_status" id="docStatusSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <option value="pending">Pending</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Quick Notes</label>
+                <div class="flex flex-wrap gap-1 mb-2">
+                    <button type="button" onclick="setDocNote('For OSA review and verification of documents.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Need verification — refer to OSA</button>
+                    <button type="button" onclick="setDocNote('Document is unclear. Please resubmit a clearer copy.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Need resubmit — unclear copy</button>
+                    <button type="button" onclick="setDocNote('Document is incomplete. Please resubmit the complete version.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Need resubmit — incomplete</button>
+                    <button type="button" onclick="setDocNote('Document is currently under review.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Under review</button>
+                    <button type="button" onclick="setDocNote('Document has been verified and approved.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Approved — all clear</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea name="doc_notes" id="docStatusNotes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Add notes about this document..."></textarea>
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <button type="button" onclick="closeDocModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Update Status</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function editDocStatus(id, status, notes) {
+        document.getElementById('docStatusDocId').value = id;
+        document.getElementById('docStatusSelect').value = status;
+        document.getElementById('docStatusNotes').value = notes;
+        document.getElementById('docModalTitle').textContent = 'Edit Document Status';
+        document.getElementById('docStatusModal').classList.remove('hidden');
+        document.getElementById('docStatusModal').classList.add('flex');
+    }
+
+    function setDocNote(note) {
+        document.getElementById('docStatusNotes').value = note;
+    }
+
+    function closeDocModal() {
+        document.getElementById('docStatusModal').classList.add('hidden');
+        document.getElementById('docStatusModal').classList.remove('flex');
+    }
+
+    document.getElementById('docStatusModal')?.addEventListener('click', function(e) {
+        if (e.target === this) closeDocModal();
+    });
+
+    // Delete/restore functions
+    function openDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('hidden');
+        document.getElementById('deleteModal').classList.add('flex');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('flex');
+        document.getElementById('deleteModal').classList.add('hidden');
+        document.getElementById('deletePassword').value = '';
+    }
+
+    document.getElementById('deleteModal')?.addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+    });
+</script>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[80]" onclick="if(event.target===this)closeDeleteModal()">
+    <div class="bg-white rounded-2xl max-w-md w-full m-4">
+        <div class="border-b px-6 py-4 flex items-center justify-between">
+            <h2 class="text-lg font-bold text-red-700">Delete Student</h2>
+            <button type="button" onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <form method="POST" class="p-6 space-y-4">
+            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+            <input type="hidden" name="soft_delete" value="1">
+
+            <div class="p-4 bg-red-50 rounded-lg text-sm text-red-800">
+                <strong>Warning:</strong> This will soft-delete the student. The account will be set to pending and permanently removed after 30 days. Enter your admin password to confirm.
+            </div>
+
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <h3 class="text-sm font-bold text-gray-900 mb-2">Full Account Info</h3>
+                <dl class="text-xs space-y-1">
+                    <div class="flex"><dt class="w-28 text-gray-500">Name:</dt><dd class="font-medium"><?= htmlspecialchars(($user['first_name'] ?? '') . ' ' . ($user['middle_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?></dd></div>
+                    <div class="flex"><dt class="w-28 text-gray-500">Email:</dt><dd><?= htmlspecialchars($user['email'] ?? '') ?></dd></div>
+                    <div class="flex"><dt class="w-28 text-gray-500">Contact:</dt><dd><?= htmlspecialchars($user['contact_number'] ?? '') ?></dd></div>
+                    <div class="flex"><dt class="w-28 text-gray-500">Course:</dt><dd><?= htmlspecialchars($student['preferred_course'] ?? '-') ?></dd></div>
+                    <div class="flex"><dt class="w-28 text-gray-500">Status:</dt><dd><?= htmlspecialchars($user['status'] ?? '') ?></dd></div>
+                </dl>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Admin Password *</label>
+                <input type="password" name="admin_password" id="deletePassword" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none"
+                    placeholder="Enter your admin password to confirm">
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Confirm Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 </main>
 </div>

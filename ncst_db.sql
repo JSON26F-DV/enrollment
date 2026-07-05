@@ -122,7 +122,7 @@ CREATE TABLE `applicant_documents` (
   `file_path` varchar(500) NOT NULL,
   `file_size` int(11) DEFAULT NULL,
   `mime_type` varchar(100) DEFAULT NULL,
-  `is_verified` tinyint(1) DEFAULT 0,
+  `status` enum('pending','submitted','approved','rejected') DEFAULT 'pending',
   `notes` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `expires_at` timestamp NOT NULL DEFAULT (current_timestamp() + interval 14 day)
@@ -229,6 +229,7 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `role` enum('admin','staff','student','registrar') NOT NULL DEFAULT 'student',
   `status` enum('active','inactive','pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `deleted_at` date DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
