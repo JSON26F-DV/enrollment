@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="flex-1 flex flex-col justify-center">
                     <div class="mb-6">
                     </div>
-                    <h1 class="text-5xl font-black tracking-tighter italic uppercase leading-tight mb-4">
+                    <h1 class="text-5xl font-black tracking-tighter uppercase leading-tight mb-4">
                         Sign in to<br>NCST
                     </h1>
                     <p class="text-lg text-black/60 font-medium">Use your NCST Account</p>

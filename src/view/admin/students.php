@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         $user_id = (int) ($_POST['user_id'] ?? 0);
         $status = $_POST['status'] ?? '';
         if ($user_id && in_array($status, ['active', 'inactive'])) {
-            $stmt = $pdo->prepare("UPDATE users SET status = ? WHERE id = ? AND role = 'student'");
+            $stmt = $pdo->prepare("UPDATE users SET status = ? WHERE id = ? AND role IN ('shs','college')");
             $stmt->execute([$status, $user_id]);
             $success = "Student status updated to {$status}.";
         }
@@ -37,16 +37,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
 }
 
 $filter = $_GET['filter'] ?? '';
+$search = trim($_GET['search'] ?? '');
+$page = max(1, (int) ($_GET['page'] ?? 1));
+$per_page = 10;
+$offset = ($page - 1) * $per_page;
 
-$where = "WHERE u.role = 'student'";
+$where = "WHERE u.role IN ('shs','college')";
+if ($search !== '') {
+    $like = $pdo->quote('%' . $search . '%');
+    $where .= " AND (u.first_name LIKE $like OR u.last_name LIKE $like OR CONCAT(u.first_name, ' ', u.last_name) LIKE $like)";
+}
 if ($filter === 'active')
     $where .= " AND u.status = 'active' AND u.deleted_at IS NULL";
 elseif ($filter === 'inactive')
     $where .= " AND u.status = 'inactive' AND u.deleted_at IS NULL";
 elseif ($filter === 'deleted')
     $where .= " AND u.deleted_at IS NOT NULL";
+elseif ($filter === 'shs')
+    $where .= " AND u.role = 'shs' AND u.deleted_at IS NULL";
+elseif ($filter === 'college')
+    $where .= " AND u.role = 'college' AND u.deleted_at IS NULL";
 
 try {
+    // Total count for pagination
+    $count_sql = "SELECT COUNT(*) FROM users u $where";
+    $total_students = (int) $pdo->query($count_sql)->fetchColumn();
+    $total_pages = max(1, (int) ceil($total_students / $per_page));
+
     $stmt = $pdo->query("
         SELECT u.*, s.preferred_course, s.academic_year, s.enrollment_status,
                a.id as applicant_id
@@ -55,6 +72,7 @@ try {
         LEFT JOIN applicants a ON a.user_id = u.id
         $where
         ORDER BY u.created_at DESC
+        LIMIT $per_page OFFSET $offset
     ");
     $students = $stmt->fetchAll();
 
@@ -116,15 +134,32 @@ try {
     </div>
 <?php endif; ?>
 
-<div class="flex gap-2 mb-6">
-    <a href="?"
+<form method="GET" class="mb-6">
+    <div class="flex gap-2">
+        <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search by name..."
+            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none">
+        <button type="submit"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Search</button>
+        <?php if ($search !== ''): ?>
+            <a href="?"
+                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">Clear</a>
+        <?php endif; ?>
+    </div>
+</form>
+
+<div class="flex gap-2 mb-6 flex-wrap">
+    <a href="?<?= http_build_query(array_merge($_GET, ['filter' => null, 'page' => null])) ?>"
         class="px-4 py-2 rounded-lg text-sm font-medium <?= !$filter ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100' ?>">All</a>
-    <a href="?filter=active"
+    <a href="?<?= http_build_query(array_merge($_GET, ['filter' => 'active', 'page' => null])) ?>"
         class="px-4 py-2 rounded-lg text-sm font-medium <?= $filter === 'active' ? 'bg-green-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100' ?>">Active</a>
-    <a href="?filter=inactive"
+    <a href="?<?= http_build_query(array_merge($_GET, ['filter' => 'inactive', 'page' => null])) ?>"
         class="px-4 py-2 rounded-lg text-sm font-medium <?= $filter === 'inactive' ? 'bg-red-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100' ?>">Inactive</a>
-    <a href="?filter=deleted"
+    <a href="?<?= http_build_query(array_merge($_GET, ['filter' => 'deleted', 'page' => null])) ?>"
         class="px-4 py-2 rounded-lg text-sm font-medium <?= $filter === 'deleted' ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 hover:bg-gray-100' ?>">Deleted</a>
+    <a href="?<?= http_build_query(array_merge($_GET, ['filter' => 'shs', 'page' => null])) ?>"
+        class="px-4 py-2 rounded-lg text-sm font-medium <?= $filter === 'shs' ? 'bg-cyan-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100' ?>">SHS</a>
+    <a href="?<?= http_build_query(array_merge($_GET, ['filter' => 'college', 'page' => null])) ?>"
+        class="px-4 py-2 rounded-lg text-sm font-medium <?= $filter === 'college' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100' ?>">College</a>
 </div>
 
 <div class="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -216,6 +251,31 @@ try {
                 </tbody>
             </table>
         </div>
+        <?php if ($total_pages > 1): ?>
+            <div class="flex items-center justify-between px-4 py-3 border-t">
+                <div class="text-sm text-gray-500">
+                    Page <?= $page ?> of <?= $total_pages ?> (<?= $total_students ?> students)
+                </div>
+                <div class="flex gap-1">
+                    <?php if ($page > 1): ?>
+                        <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page - 1])) ?>"
+                            class="px-3 py-1.5 border rounded-lg text-sm hover:bg-gray-50">Prev</a>
+                    <?php endif; ?>
+                    <?php
+                    $start = max(1, $page - 2);
+                    $end = min($total_pages, $page + 2);
+                    for ($i = $start; $i <= $end; $i++):
+                        ?>
+                        <a href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>"
+                            class="px-3 py-1.5 border rounded-lg text-sm <?= $i === $page ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-gray-50' ?>"><?= $i ?></a>
+                    <?php endfor; ?>
+                    <?php if ($page < $total_pages): ?>
+                        <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page + 1])) ?>"
+                            class="px-3 py-1.5 border rounded-lg text-sm hover:bg-gray-50">Next</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
 </div>
 <!-- Student Detail Modal -->

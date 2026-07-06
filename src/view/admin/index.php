@@ -6,18 +6,18 @@ require_once __DIR__ . '/sidebar.php';
 try {
     $stmt = $pdo->query("SELECT COUNT(*) FROM applicants");
     $total_applicants = $stmt->fetchColumn();
-    
+
     $stmt = $pdo->query("SELECT COUNT(*) FROM applicants WHERE status = 'pending'");
     $pending_applicants = $stmt->fetchColumn();
-    
+
     $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'student'");
     $total_students = $stmt->fetchColumn();
-    
+
     $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role IN ('admin', 'staff')");
     $total_staff = $stmt->fetchColumn();
-    
+
     // Get latest 10 accounts
-    $stmt = $pdo->query("SELECT * FROM users WHERE role IN ('admin', 'staff') ORDER BY created_at DESC LIMIT 10");
+    $stmt = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 10");
     $latest_accounts = $stmt->fetchAll();
 } catch (Exception $e) {
     $total_applicants = $pending_applicants = $total_students = $total_staff = 0;
@@ -54,7 +54,6 @@ try {
 <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-bold text-gray-900">Latest Accounts</h2>
-        <a href="<?= url('/src/view/admin/accounts.php') ?>" class="text-sm font-medium text-blue-600 hover:underline">View All</a>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full">
@@ -75,15 +74,18 @@ try {
                 <?php else: ?>
                     <?php foreach ($latest_accounts as $acc): ?>
                         <tr class="text-sm">
-                            <td class="py-3 text-gray-900"><?= htmlspecialchars($acc['first_name'] . ' ' . $acc['last_name']) ?></td>
+                            <td class="py-3 text-gray-900"><?= htmlspecialchars($acc['first_name'] . ' ' . $acc['last_name']) ?>
+                            </td>
                             <td class="py-3 text-gray-500"><?= htmlspecialchars($acc['email']) ?></td>
                             <td class="py-3">
-                                <span class="px-2 py-0.5 rounded-full text-xs font-medium <?= $acc['role'] === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' ?>">
+                                <span
+                                    class="px-2 py-0.5 rounded-full text-xs font-medium <?= $acc['role'] === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' ?>">
                                     <?= ucfirst($acc['role']) ?>
                                 </span>
                             </td>
                             <td class="py-3">
-                                <span class="px-2 py-0.5 rounded-full text-xs font-medium <?= $acc['status'] === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' ?>">
+                                <span
+                                    class="px-2 py-0.5 rounded-full text-xs font-medium <?= $acc['status'] === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' ?>">
                                     <?= ucfirst($acc['status']) ?>
                                 </span>
                             </td>
@@ -99,4 +101,5 @@ try {
 </main>
 </div>
 </body>
+
 </html>

@@ -28,7 +28,7 @@ $doc_type_labels = [
 
 if ($is_edit) {
     try {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? AND role = 'student'");
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? AND role IN ('shs','college')");
         $stmt->execute([$edit_id]);
         $user = $stmt->fetch();
         if (!$user) {
@@ -329,7 +329,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['soft_delete'])) {
         if (!$admin || !password_verify($admin_password, $admin['password'])) {
             $errors[] = 'Invalid admin password.';
         } else {
-            $stmt = $pdo->prepare("UPDATE users SET deleted_at = CURDATE(), status = 'pending' WHERE id = ? AND role = 'student'");
+            $stmt = $pdo->prepare("UPDATE users SET deleted_at = CURDATE(), status = 'pending' WHERE id = ? AND role IN ('shs','college')");
             $stmt->execute([$edit_id]);
             $success = 'Student has been soft-deleted. Account will be permanently removed after 30 days.';
             // Refresh user data
@@ -347,7 +347,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['restore_student'])) {
     } elseif (!$is_edit) {
         $errors[] = 'Student not found.';
     } else {
-        $stmt = $pdo->prepare("UPDATE users SET deleted_at = NULL, status = 'active' WHERE id = ? AND role = 'student'");
+        $stmt = $pdo->prepare("UPDATE users SET deleted_at = NULL, status = 'active' WHERE id = ? AND role IN ('shs','college')");
         $stmt->execute([$edit_id]);
         $success = 'Student account restored successfully.';
         // Refresh user data
@@ -769,7 +769,7 @@ try {
                                 <?= htmlspecialchars($d['notes'] ?? '') ?: '<span class="text-gray-300">—</span>' ?>
                             </td>
                             <td class="py-3 px-2 text-right space-x-1">
-                                <button type="button" onclick="editDocStatus(<?= $d['id'] ?>, '<?= $status ?>', '<?= htmlspecialchars($d['notes'] ?? '', ENT_QUOTES) ?>')"
+                                <button type="button" onclick="editDocStatus(<?= $d['id'] ?>, '<?= $status ?>', '<?= htmlspecialchars($d['notes'] ?? '', ENT_QUOTES) ?>', '<?= htmlspecialchars(url($d['file_path']), ENT_QUOTES) ?>', '<?= htmlspecialchars($d['file_name'], ENT_QUOTES) ?>')"
                                     class="text-blue-600 hover:underline text-xs">Edit</button>
                                 <form method="POST" class="inline" onsubmit="return confirm('Delete this document?')">
                                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
@@ -798,6 +798,7 @@ try {
                 </svg>
             </button>
         </div>
+        <div id="docPreview" class="p-4 bg-gray-50 flex items-center justify-center min-h-[80px]"></div>
         <form method="POST" class="p-6 space-y-4">
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
             <input type="hidden" name="update_doc_status" value="1">
@@ -838,11 +839,24 @@ try {
 </div>
 
 <script>
-    function editDocStatus(id, status, notes) {
+    function editDocStatus(id, status, notes, filePath, fileName) {
         document.getElementById('docStatusDocId').value = id;
         document.getElementById('docStatusSelect').value = status;
         document.getElementById('docStatusNotes').value = notes;
         document.getElementById('docModalTitle').textContent = 'Edit Document Status';
+
+        const preview = document.getElementById('docPreview');
+        if (filePath) {
+            const isImg = filePath.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+            if (isImg) {
+                preview.innerHTML = '<a href="' + filePath + '" target="_blank"><img src="' + filePath + '" alt="' + (fileName || 'Document') + '" class="max-h-48 mx-auto rounded-lg border"></a>';
+            } else {
+                preview.innerHTML = '<a href="' + filePath + '" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm hover:bg-blue-100"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> View File: ' + (fileName || 'Document') + '</a>';
+            }
+        } else {
+            preview.innerHTML = '';
+        }
+
         document.getElementById('docStatusModal').classList.remove('hidden');
         document.getElementById('docStatusModal').classList.add('flex');
     }

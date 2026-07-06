@@ -67,9 +67,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_account'])) {
 }
 
 $filter_role = $_GET['filter'] ?? '';
-$where = "WHERE role IN ('admin', 'staff')";
+$where = "WHERE role NOT IN ('shs', 'college')";
 if ($filter_role === 'admin') $where .= " AND role = 'admin'";
 elseif ($filter_role === 'staff') $where .= " AND role = 'staff'";
+elseif ($filter_role === 'registrar') $where .= " AND role = 'registrar'";
 
 try {
     $stmt = $pdo->query("SELECT * FROM users $where ORDER BY created_at DESC");
@@ -84,19 +85,20 @@ try {
         <h1 class="text-3xl font-bold text-gray-900">Accounts</h1>
         <p class="text-gray-500 mt-1">Manage admin and staff accounts</p>
     </div>
-    <button onclick="document.getElementById('createModal').classList.remove('hidden');document.getElementById('createModal').classList.add('flex');" 
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
+    <a href="<?= url('/src/view/admin/manageaccount.php') ?>" 
+       class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
         Create Account
-    </button>
+    </a>
 </div>
 
 <div class="flex gap-2 mb-6">
     <a href="?" class="px-4 py-2 rounded-lg text-sm font-medium <?= !$filter_role ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100' ?>">All</a>
-    <a href="?filter=admin" class="px-4 py-2 rounded-lg text-sm font-medium <?= $filter_role === 'admin' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100' ?>">Admin</a>
+    <a href="?filter=admin" class="px-4 py-2 rounded-lg text-sm font-medium <?= $filter_role === 'admin' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100' ?>">Admin</a>
     <a href="?filter=staff" class="px-4 py-2 rounded-lg text-sm font-medium <?= $filter_role === 'staff' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100' ?>">Staff</a>
+    <a href="?filter=registrar" class="px-4 py-2 rounded-lg text-sm font-medium <?= $filter_role === 'registrar' ? 'bg-amber-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100' ?>">Registrar</a>
 </div>
 
 <?php if (!empty($errors)): ?>
@@ -148,7 +150,9 @@ try {
                                 </span>
                             </td>
                             <td class="px-4 py-4 text-sm text-gray-500"><?= date('M d, Y', strtotime($acc['created_at'])) ?></td>
-                            <td class="px-4 py-4 text-right">
+                            <td class="px-4 py-4 text-right space-x-3">
+                                <a href="<?= url('/src/view/admin/manageaccount.php?id=' . $acc['id']) ?>"
+                                   class="text-blue-600 hover:underline text-sm">Edit</a>
                                 <button onclick="deleteAccount(<?= $acc['id'] ?>, '<?= htmlspecialchars(addslashes($acc['first_name'] . ' ' . $acc['last_name'])) ?>')" 
                                         class="text-red-600 hover:text-red-800 text-sm">Delete</button>
                             </td>
@@ -158,70 +162,6 @@ try {
             </table>
         </div>
     <?php endif; ?>
-</div>
-
-<!-- Create Account Modal -->
-<div id="createModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-2xl max-w-md w-full mx-4">
-        <div class="p-6 border-b flex items-center justify-between">
-            <h2 class="text-xl font-bold">Create Account</h2>
-            <button onclick="document.getElementById('createModal').classList.add('hidden');document.getElementById('createModal').classList.remove('flex');" class="text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-        <form method="POST" class="p-6 space-y-4">
-            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
-                    <input type="text" name="first_name" required value="<?= htmlspecialchars($old['first_name'] ?? '') ?>" class="w-full px-3 py-2 border rounded-lg">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
-                    <input type="text" name="last_name" required value="<?= htmlspecialchars($old['last_name'] ?? '') ?>" class="w-full px-3 py-2 border rounded-lg">
-                </div>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                <input type="email" name="email" required value="<?= htmlspecialchars($old['email'] ?? '') ?>" class="w-full px-3 py-2 border rounded-lg">
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Birthday *</label>
-                    <input type="date" name="birthday" required value="<?= htmlspecialchars($old['birthday'] ?? '') ?>" class="w-full px-3 py-2 border rounded-lg">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Gender *</label>
-                    <select name="gender" required class="w-full px-3 py-2 border rounded-lg">
-                        <option value="">Select</option>
-                        <option value="Male" <?= ($old['gender'] ?? '') === 'Male' ? 'selected' : '' ?>>Male</option>
-                        <option value="Female" <?= ($old['gender'] ?? '') === 'Female' ? 'selected' : '' ?>>Female</option>
-                    </select>
-                </div>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number *</label>
-                <input type="text" name="contact_number" required value="<?= htmlspecialchars($old['contact_number'] ?? '') ?>" class="w-full px-3 py-2 border rounded-lg">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Role *</label>
-                <select name="role" required class="w-full px-3 py-2 border rounded-lg">
-                    <option value="staff" <?= ($old['role'] ?? 'staff') === 'staff' ? 'selected' : '' ?>>Staff</option>
-                    <option value="admin" <?= ($old['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Password *</label>
-                <input type="password" name="password" required minlength="6" class="w-full px-3 py-2 border rounded-lg">
-            </div>
-            <div class="flex gap-3 pt-4">
-                <button type="button" onclick="document.getElementById('createModal').classList.add('hidden');document.getElementById('createModal').classList.remove('flex');" class="flex-1 px-4 py-2 border rounded-lg font-medium hover:bg-gray-50">Cancel</button>
-                <button type="submit" name="create_account" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">Create</button>
-            </div>
-        </form>
-    </div>
 </div>
 
 <!-- Delete Modal -->

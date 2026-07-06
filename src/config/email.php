@@ -22,9 +22,12 @@ function send_email($to, $subject, $html, $text = null) {
         error_log("Resend API key not configured. Email not sent to: $to");
         return false;
     }
+
+    $from_address = getenv('MAIL_FROM_ADDRESS') ?: 'onboarding@resend.dev';
+    $from_name = getenv('MAIL_FROM_NAME') ?: 'NCST Enrollment';
     
     $data = [
-        'from' => 'NCST Enrollment <noreply@ncst.edu.ph>',
+        'from' => "$from_name <$from_address>",
         'to' => [$to],
         'subject' => $subject,
         'html' => $html,
@@ -107,7 +110,7 @@ function send_application_confirmation($email, $first_name) {
 /**
  * Send approval email with student credentials
  */
-function send_approval_email($email, $first_name) {
+function send_approval_email($email, $first_name, $password = 'ncst123') {
     $subject = 'NCST Enrollment Approved - Your Student Account';
     $html = '
     <!DOCTYPE html>
@@ -119,44 +122,38 @@ function send_approval_email($email, $first_name) {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .header { background: #059669; color: white; padding: 20px; text-align: center; }
             .content { padding: 20px; background: #f9f9f9; }
-            .credentials { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
+            .credentials { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px dashed #059669; }
             .credential-label { font-weight: bold; color: #666; }
             .credential-value { font-size: 18px; color: #1a73e8; }
-            .warning { background: #fef3c7; padding: 10px; border-radius: 4px; margin: 10px 0; }
+            .school-note { background: #eff6ff; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #1a73e8; }
             .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>🎉 Congratulations!</h1>
+                <h1>Application Approved!</h1>
             </div>
             <div class="content">
                 <p>Hello ' . htmlspecialchars($first_name) . ',</p>
-                <p>Great news! Your enrollment application has been <strong>approved</strong>.</p>
-                <p>Here are your account credentials:</p>
+                <p>Your enrollment application at <strong>National College of Science and Technology</strong> has been approved!</p>
+                
+                <div class="school-note">
+                    <strong>Please proceed to the school</strong> to complete your enrollment process. Visit the Registrar\'s Office at your convenience to finalize your registration and receive further instructions.
+                </div>
+                
+                <p>You can also log in to your student portal using the credentials below:</p>
                 
                 <div class="credentials">
                     <p class="credential-label">Email:</p>
                     <p class="credential-value">' . htmlspecialchars($email) . '</p>
                     <br>
-                    <p class="credential-label">Default Password:</p>
-                    <p class="credential-value">ncst123</p>
+                    <p class="credential-label">Password:</p>
+                    <p class="credential-value">' . htmlspecialchars($password) . '</p>
                 </div>
                 
-                <div class="warning">
-                    <strong>⚠️ Important:</strong>
-                    <ul>
-                        <li>Please change your password after your first login</li>
-                        <li>Do not share your credentials with anyone</li>
-                    </ul>
-                </div>
-                
-                <p>Click the link below to login to your student portal:</p>
-                <p><a href="' . (defined('BASE_URL') ? BASE_URL : '') . '/src/view/auth/login/loginpage.php" style="display: inline-block; background: #1a73e8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Login to Student Portal</a></p>
-                
-                <p>If you have any questions, please contact our admissions office.</p>
-                <p>Welcome to NCST!<br><strong>NCST Admissions Office</strong></p>
+                <p>Welcome to NCST! We look forward to seeing you on campus.</p>
+                <p>Best regards,<br><strong>NCST Admissions Office</strong></p>
             </div>
             <div class="footer">
                 <p>This is an automated message. Please do not reply directly to this email.</p>
