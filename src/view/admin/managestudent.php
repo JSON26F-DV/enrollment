@@ -101,6 +101,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
         $semester = trim($_POST['semester'] ?? '');
         $academic_year = trim($_POST['academic_year'] ?? '');
         $enrollment_status = trim($_POST['enrollment_status'] ?? 'pending');
+        $section_id = !empty($_POST['section_id']) ? (int) $_POST['section_id'] : null;
+
+        // Validate section_id exists if provided
+        if ($section_id !== null) {
+            $stmt = $pdo->prepare("SELECT id FROM sections WHERE id = ?");
+            $stmt->execute([$section_id]);
+            if (!$stmt->fetch()) {
+                $errors[] = 'Invalid section selected.';
+                $section_id = null;
+            }
+        }
 
         // Validation
         if (empty($first_name)) $errors[] = 'First name is required.';
@@ -133,11 +144,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
 
                     // Upsert students table
                     if (!empty($student)) {
-                        $stmt = $pdo->prepare("UPDATE students SET father_name=?, mother_name=?, guardian_name=?, guardian_contact=?, guardian_relationship=?, education_type=?, highschool_name=?, highschool_address=?, shs_strand=?, shs_track=?, year_graduated=?, lrn=?, previous_college=?, previous_course=?, last_year_level=?, preferred_course=?, second_course=?, semester=?, academic_year=?, enrollment_status=? WHERE user_id=?");
-                        $stmt->execute([$father_name, $mother_name, $guardian_name, $guardian_contact, $guardian_relationship, $education_type, $highschool_name, $highschool_address, $shs_strand, $shs_track, $year_graduated, $lrn, $previous_college, $previous_course, $last_year_level, $preferred_course, $second_course, $semester, $academic_year, $enrollment_status, $edit_id]);
+                        $stmt = $pdo->prepare("UPDATE students SET father_name=?, mother_name=?, guardian_name=?, guardian_contact=?, guardian_relationship=?, education_type=?, highschool_name=?, highschool_address=?, shs_strand=?, shs_track=?, year_graduated=?, lrn=?, previous_college=?, previous_course=?, last_year_level=?, preferred_course=?, second_course=?, semester=?, academic_year=?, enrollment_status=?, section_id=? WHERE user_id=?");
+                        $stmt->execute([$father_name, $mother_name, $guardian_name, $guardian_contact, $guardian_relationship, $education_type, $highschool_name, $highschool_address, $shs_strand, $shs_track, $year_graduated, $lrn, $previous_college, $previous_course, $last_year_level, $preferred_course, $second_course, $semester, $academic_year, $enrollment_status, $section_id, $edit_id]);
                     } else {
-                        $stmt = $pdo->prepare("INSERT INTO students (user_id, father_name, mother_name, guardian_name, guardian_contact, guardian_relationship, education_type, highschool_name, highschool_address, shs_strand, shs_track, year_graduated, lrn, previous_college, previous_course, last_year_level, preferred_course, second_course, semester, academic_year, enrollment_status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-                        $stmt->execute([$edit_id, $father_name, $mother_name, $guardian_name, $guardian_contact, $guardian_relationship, $education_type, $highschool_name, $highschool_address, $shs_strand, $shs_track, $year_graduated, $lrn, $previous_college, $previous_course, $last_year_level, $preferred_course, $second_course, $semester, $academic_year, $enrollment_status]);
+                        $stmt = $pdo->prepare("INSERT INTO students (user_id, father_name, mother_name, guardian_name, guardian_contact, guardian_relationship, education_type, highschool_name, highschool_address, shs_strand, shs_track, year_graduated, lrn, previous_college, previous_course, last_year_level, preferred_course, second_course, semester, academic_year, enrollment_status, section_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                        $stmt->execute([$edit_id, $father_name, $mother_name, $guardian_name, $guardian_contact, $guardian_relationship, $education_type, $highschool_name, $highschool_address, $shs_strand, $shs_track, $year_graduated, $lrn, $previous_college, $previous_course, $last_year_level, $preferred_course, $second_course, $semester, $academic_year, $enrollment_status, $section_id]);
                     }
 
                     $success = 'Student updated successfully!';
@@ -147,8 +158,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
                     $stmt->execute([$first_name, $middle_name, $last_name, $suffix, $birthday, $gender, $civil_status, $nationality, $religion, $birth_place, $email, $contact_number, $home_address, $province, $city, $barangay, $zip_code, $hashed, $status]);
                     $edit_id = (int) $pdo->lastInsertId();
 
-                    $stmt = $pdo->prepare("INSERT INTO students (user_id, father_name, mother_name, guardian_name, guardian_contact, guardian_relationship, education_type, highschool_name, highschool_address, shs_strand, shs_track, year_graduated, lrn, previous_college, previous_course, last_year_level, preferred_course, second_course, semester, academic_year, enrollment_status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-                    $stmt->execute([$edit_id, $father_name, $mother_name, $guardian_name, $guardian_contact, $guardian_relationship, $education_type, $highschool_name, $highschool_address, $shs_strand, $shs_track, $year_graduated, $lrn, $previous_college, $previous_course, $last_year_level, $preferred_course, $second_course, $semester, $academic_year, $enrollment_status]);
+                    $stmt = $pdo->prepare("INSERT INTO students (user_id, father_name, mother_name, guardian_name, guardian_contact, guardian_relationship, education_type, highschool_name, highschool_address, shs_strand, shs_track, year_graduated, lrn, previous_college, previous_course, last_year_level, preferred_course, second_course, semester, academic_year, enrollment_status, section_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                    $stmt->execute([$edit_id, $father_name, $mother_name, $guardian_name, $guardian_contact, $guardian_relationship, $education_type, $highschool_name, $highschool_address, $shs_strand, $shs_track, $year_graduated, $lrn, $previous_college, $previous_course, $last_year_level, $preferred_course, $second_course, $semester, $academic_year, $enrollment_status, $section_id]);
 
                     $success = 'Student created successfully!';
                 }
@@ -172,6 +183,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
                     $stmt = $pdo->prepare("SELECT * FROM applicant_documents WHERE applicant_id = ? ORDER BY created_at DESC");
                     $stmt->execute([$applicant_id]);
                     $documents = $stmt->fetchAll();
+                }
+
+                // Re-fetch section counts after save to reflect updated data
+                $currentSectionId = $student['section_id'] ?? null;
+                $sectionCounts = $pdo->query("
+                    SELECT s.id, s.section_name, s.start_time, s.end_time, COUNT(st.id) as student_count
+                    FROM sections s
+                    LEFT JOIN students st ON s.id = st.section_id
+                    GROUP BY s.id, s.section_name, s.start_time, s.end_time
+                    ORDER BY s.section_name
+                ")->fetchAll();
+                $sectionCountsMap = [];
+                foreach ($sectionCounts as $sc) {
+                    $sectionCountsMap[$sc['id']] = $sc;
                 }
 
                 $old = [];
@@ -363,6 +388,33 @@ try {
 } catch (Exception $e) {
     $courses = [];
 }
+
+// Fetch sections for dropdown
+try {
+    $sections = $pdo->query("SELECT * FROM sections ORDER BY section_name")->fetchAll();
+} catch (Exception $e) {
+    $sections = [];
+}
+
+// Fetch section counts using optimized SQL with JOIN and GROUP BY
+try {
+    $sectionCounts = $pdo->query("
+        SELECT s.id, s.section_name, s.start_time, s.end_time, COUNT(st.id) as student_count
+        FROM sections s
+        LEFT JOIN students st ON s.id = st.section_id
+        GROUP BY s.id, s.section_name, s.start_time, s.end_time
+        ORDER BY s.section_name
+    ")->fetchAll();
+    $sectionCountsMap = [];
+    foreach ($sectionCounts as $sc) {
+        $sectionCountsMap[$sc['id']] = $sc;
+    }
+} catch (Exception $e) {
+    $sectionCountsMap = [];
+}
+
+// Get current student's section for edit mode
+$currentSectionId = $student['section_id'] ?? null;
 ?>
 <div class="mb-8 flex items-center justify-between">
     <div>
@@ -549,6 +601,18 @@ try {
                     <?php endforeach; ?>
                 </select>
             </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Section</label>
+                <select name="section_id"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none">
+                    <option value="">-- No Section Assigned --</option>
+                    <?php foreach ($sections as $sec): ?>
+                        <option value="<?= (int)$sec['id'] ?>" <?= (($old['section_id'] ?? $currentSectionId) == $sec['id']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($sec['section_name']) ?> (<?= htmlspecialchars(date('g:i A', strtotime($sec['start_time']))) ?> - <?= htmlspecialchars(date('g:i A', strtotime($sec['end_time']))) ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
             <div class="lg:col-span-3">
                 <hr class="my-2">
                 <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Previous Education</p>
@@ -677,6 +741,75 @@ try {
         <?php endif; ?>
     </div>
 </form>
+
+<!-- Section Summary Table -->
+<?php if (!empty($sectionCounts)): ?>
+<div class="mt-8 bg-white rounded-xl shadow-sm p-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-900">Section Overview</h2>
+        <span class="text-xs text-gray-500">Real-time student enrollment counts</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Section</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Time Schedule</th>
+                    <th class="text-center py-3 px-4 font-semibold text-gray-700">Students Enrolled</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Current Student</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                $totalStudents = 0;
+                foreach ($sectionCounts as $sc): 
+                    $totalStudents += (int)$sc['student_count'];
+                    $isAssignedToCurrent = ($currentSectionId == $sc['id']);
+                ?>
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 <?= $isAssignedToCurrent ? 'bg-blue-50' : '' ?>">
+                        <td class="py-3 px-4">
+                            <span class="font-semibold <?= $isAssignedToCurrent ? 'text-blue-700' : 'text-gray-900' ?>">
+                                <?= htmlspecialchars($sc['section_name']) ?>
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-gray-600">
+                            <?= htmlspecialchars(date('g:i A', strtotime($sc['start_time']))) ?> - <?= htmlspecialchars(date('g:i A', strtotime($sc['end_time']))) ?>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 rounded-full text-xs font-bold <?= (int)$sc['student_count'] > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' ?>">
+                                <?= (int)$sc['student_count'] ?>
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <?php if ($isAssignedToCurrent): ?>
+                                <span class="inline-flex items-center gap-1 text-blue-600 text-xs font-medium">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    Currently editing this student
+                                </span>
+                            <?php else: ?>
+                                <span class="text-gray-400 text-xs">—</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+            <tfoot>
+                <tr class="bg-gray-50">
+                    <td class="py-3 px-4 font-bold text-gray-900" colspan="2">Total Students Enrolled</td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                            <?= $totalStudents ?>
+                        </span>
+                    </td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+<?php endif; ?>
 
 <!-- Documents Section (edit mode only) -->
 <?php if ($is_edit): ?>

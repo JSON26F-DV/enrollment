@@ -4,6 +4,52 @@ require_student();
 
 $user_id = $_SESSION['user_id'];
 
+// Handle section update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_section'])) {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        $msg = 'Invalid session token.';
+        $type = 'error';
+    } else {
+        $section_id = !empty($_POST['section_id']) ? (int) $_POST['section_id'] : null;
+        
+        try {
+            // Validate section exists if provided
+            if ($section_id !== null) {
+                $stmt = $pdo->prepare("SELECT id FROM sections WHERE id = ?");
+                $stmt->execute([$section_id]);
+                if (!$stmt->fetch()) {
+                    $msg = 'Invalid section selected.';
+                    $type = 'error';
+                    header('Location: ' . url('/src/view/student/dashboard.php?tab=enrollment&msg=' . urlencode($msg) . '&type=' . urlencode($type)));
+                    exit;
+                }
+            }
+            
+            // Check if student record exists
+            $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ?");
+            $stmt->execute([$user_id]);
+            $studentRecord = $stmt->fetch();
+            
+            if ($studentRecord) {
+                $stmt = $pdo->prepare("UPDATE students SET section_id = ? WHERE user_id = ?");
+                $stmt->execute([$section_id, $user_id]);
+            } else {
+                // Create student record with section if it doesn't exist
+                $stmt = $pdo->prepare("INSERT INTO students (user_id, section_id, enrollment_status) VALUES (?, ?, 'pending')");
+                $stmt->execute([$user_id, $section_id]);
+            }
+            
+            $msg = 'Section updated successfully!';
+            $type = 'success';
+        } catch (PDOException $e) {
+            $msg = 'Failed to update section.';
+            $type = 'error';
+        }
+    }
+    header('Location: ' . url('/src/view/student/dashboard.php?tab=enrollment&msg=' . urlencode($msg) . '&type=' . urlencode($type)));
+    exit;
+}
+
 // Handle contact info update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_contact'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
