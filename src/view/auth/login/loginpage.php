@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['logged_in'] = true;
                 if ($user['role'] === 'admin') {
                     header("Location: " . url('/src/view/admin/'));
-                } elseif ($user['role'] === 'staff') {
+                } elseif (in_array($user['role'], ['staff', 'registrar'])) {
                     header("Location: " . url('/src/view/staff/dashboard.php'));
                 } else {
                     header("Location: " . url('/src/view/student/dashboard.php'));

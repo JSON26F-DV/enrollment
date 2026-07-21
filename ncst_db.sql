@@ -97,7 +97,9 @@ CREATE TABLE `applicants` (
   `user_id` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `expires_at` timestamp NOT NULL DEFAULT (current_timestamp() + interval 14 day)
+  `expires_at` timestamp NOT NULL DEFAULT (current_timestamp() + interval 14 day),
+  `appointment_label` varchar(100) DEFAULT NULL,
+  `appointment` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --

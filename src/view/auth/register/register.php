@@ -119,8 +119,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_application'])
             $birthDate = new DateTime($birthday);
             $today = new DateTime();
             $age = $today->diff($birthDate)->y;
-            if ($age < 17)
-                $errors[] = 'You must be at least 17 years old to enroll.';
+            if ($age < 15)
+                $errors[] = 'You must be at least 15 years old to enroll.';
             elseif ($age > 100)
                 $errors[] = 'Invalid age. Please check your birthdate.';
         }
@@ -168,14 +168,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_application'])
                 ");
 
                 $stmt->execute([
-                    $first_name, $middle_name, $last_name, $suffix, $birthday, $gender,
-                    $civil_status, $nationality, $religion, $birth_place,
-                    $email, $contact_number, $home_address, $province, $city, $barangay, $zip_code,
-                    $father_name, $mother_name, $guardian_name, $guardian_contact, $guardian_relationship,
-                    $education_type, $highschool_name, $highschool_address, $shs_track, $shs_strand, $year_graduated, $lrn,
-                    $previous_college, $previous_course, $last_year_level,
-                    $preferred_course, $second_course,
-                    $academicYearInfo['semester'] ?? '1st Semester', $academicYearInfo['year'] ?? '2026-2027',
+                    $first_name,
+                    $middle_name,
+                    $last_name,
+                    $suffix,
+                    $birthday,
+                    $gender,
+                    $civil_status,
+                    $nationality,
+                    $religion,
+                    $birth_place,
+                    $email,
+                    $contact_number,
+                    $home_address,
+                    $province,
+                    $city,
+                    $barangay,
+                    $zip_code,
+                    $father_name,
+                    $mother_name,
+                    $guardian_name,
+                    $guardian_contact,
+                    $guardian_relationship,
+                    $education_type,
+                    $highschool_name,
+                    $highschool_address,
+                    $shs_track,
+                    $shs_strand,
+                    $year_graduated,
+                    $lrn,
+                    $previous_college,
+                    $previous_course,
+                    $last_year_level,
+                    $preferred_course,
+                    $second_course,
+                    $academicYearInfo['semester'] ?? '1st Semester',
+                    $academicYearInfo['year'] ?? '2026-2027',
                     'pending'
                 ]);
 
@@ -425,9 +453,9 @@ $step_labels = [
                                     </div>
                                     <div
                                         class="flex-1 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">Middle Name</label>
+                                        <label class="text-xs font-medium text-black/50">Middle Name *</label>
                                         <input type="text" name="middle_name"
-                                            value="<?= htmlspecialchars($old['middle_name'] ?? '') ?>"
+                                            value="<?= htmlspecialchars($old['middle_name'] ?? '') ?>" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="Santos">
                                     </div>
@@ -459,7 +487,8 @@ $step_labels = [
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1"
                                             onchange="calculateAge()">
                                     </div>
-                                    <div class="flex-1 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                    <div
+                                        class="flex-1 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
                                         <label class="text-xs font-medium text-black/50">Gender *</label>
                                         <select name="gender" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
@@ -481,17 +510,18 @@ $step_labels = [
                                 <div class="flex gap-4">
                                     <div
                                         class="flex-1 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">Birth Place</label>
+                                        <label class="text-xs font-medium text-black/50">Birth Place *</label>
                                         <input type="text" name="birth_place"
-                                            value="<?= htmlspecialchars($old['birth_place'] ?? '') ?>"
+                                            value="<?= htmlspecialchars($old['birth_place'] ?? '') ?>" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="City/Municipality, Province">
                                     </div>
                                 </div>
                                 <div class="flex gap-4">
-                                    <div class="flex-1 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">Civil Status</label>
-                                        <select name="civil_status"
+                                    <div
+                                        class="flex-1 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">Civil Status *</label>
+                                        <select name="civil_status" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
                                             <option value="Single" <?= ($old['civil_status'] ?? 'Single') === 'Single' ? 'selected' : '' ?>>Single</option>
                                             <option value="Married" <?= ($old['civil_status'] ?? '') === 'Married' ? 'selected' : '' ?>>Married</option>
@@ -502,17 +532,17 @@ $step_labels = [
                                     </div>
                                     <div
                                         class="flex-1 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">Nationality</label>
+                                        <label class="text-xs font-medium text-black/50">Nationality *</label>
                                         <input type="text" name="nationality"
-                                            value="<?= htmlspecialchars($old['nationality'] ?? 'Filipino') ?>"
+                                            value="<?= htmlspecialchars($old['nationality'] ?? 'Filipino') ?>" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="Filipino">
                                     </div>
                                     <div
                                         class="flex-1 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">Religion</label>
+                                        <label class="text-xs font-medium text-black/50">Religion *</label>
                                         <input type="text" name="religion"
-                                            value="<?= htmlspecialchars($old['religion'] ?? '') ?>"
+                                            value="<?= htmlspecialchars($old['religion'] ?? '') ?>" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="Catholic, etc.">
                                     </div>
@@ -546,40 +576,40 @@ $step_labels = [
                                 </div>
                                 <div
                                     class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                    <label class="text-xs font-medium text-black/50">Home Address</label>
+                                    <label class="text-xs font-medium text-black/50">Home Address *</label>
                                     <input type="text" name="home_address"
-                                        value="<?= htmlspecialchars($old['home_address'] ?? '') ?>"
+                                        value="<?= htmlspecialchars($old['home_address'] ?? '') ?>" required
                                         class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                         placeholder="House No., Street Name">
                                 </div>
                                 <div
                                     class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                    <label class="text-xs font-medium text-black/50">Province</label>
+                                    <label class="text-xs font-medium text-black/50">Province *</label>
                                     <input type="text" name="province"
-                                        value="<?= htmlspecialchars($old['province'] ?? '') ?>"
+                                        value="<?= htmlspecialchars($old['province'] ?? '') ?>" required
                                         class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                         placeholder="Cavite">
                                 </div>
                                 <div
                                     class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                    <label class="text-xs font-medium text-black/50">City/Municipality</label>
-                                    <input type="text" name="city" value="<?= htmlspecialchars($old['city'] ?? '') ?>"
+                                    <label class="text-xs font-medium text-black/50">City/Municipality *</label>
+                                    <input type="text" name="city" value="<?= htmlspecialchars($old['city'] ?? '') ?>" required
                                         class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                         placeholder="Imus">
                                 </div>
                                 <div
                                     class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                    <label class="text-xs font-medium text-black/50">Barangay</label>
+                                    <label class="text-xs font-medium text-black/50">Barangay *</label>
                                     <input type="text" name="barangay"
-                                        value="<?= htmlspecialchars($old['barangay'] ?? '') ?>"
+                                        value="<?= htmlspecialchars($old['barangay'] ?? '') ?>" required
                                         class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                         placeholder="Bucandala">
                                 </div>
                                 <div
                                     class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                    <label class="text-xs font-medium text-black/50">ZIP Code</label>
+                                    <label class="text-xs font-medium text-black/50">ZIP Code *</label>
                                     <input type="text" name="zip_code"
-                                        value="<?= htmlspecialchars($old['zip_code'] ?? '') ?>"
+                                        value="<?= htmlspecialchars($old['zip_code'] ?? '') ?>" required
                                         class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                         placeholder="4103">
                                 </div>
@@ -596,17 +626,17 @@ $step_labels = [
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div
                                     class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                    <label class="text-xs font-medium text-black/50">Father's Name</label>
+                                    <label class="text-xs font-medium text-black/50">Father's Name *</label>
                                     <input type="text" name="father_name"
-                                        value="<?= htmlspecialchars($old['father_name'] ?? '') ?>"
+                                        value="<?= htmlspecialchars($old['father_name'] ?? '') ?>" required
                                         class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                         placeholder="Juan Sr. Dela Cruz">
                                 </div>
                                 <div
                                     class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                    <label class="text-xs font-medium text-black/50">Mother's Name</label>
+                                    <label class="text-xs font-medium text-black/50">Mother's Name *</label>
                                     <input type="text" name="mother_name"
-                                        value="<?= htmlspecialchars($old['mother_name'] ?? '') ?>"
+                                        value="<?= htmlspecialchars($old['mother_name'] ?? '') ?>" required
                                         class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                         placeholder="Maria Santos Dela Cruz">
                                 </div>
@@ -620,15 +650,16 @@ $step_labels = [
                                 </div>
                                 <div
                                     class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                    <label class="text-xs font-medium text-black/50">Guardian's Contact Number</label>
+                                    <label class="text-xs font-medium text-black/50">Guardian's Contact Number *</label>
                                     <input type="tel" name="guardian_contact"
-                                        value="<?= htmlspecialchars($old['guardian_contact'] ?? '') ?>"
+                                        value="<?= htmlspecialchars($old['guardian_contact'] ?? '') ?>" required
                                         class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                         placeholder="09123456789">
                                 </div>
-                                <div class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                    <label class="text-xs font-medium text-black/50">Relationship to Guardian</label>
-                                    <select name="guardian_relationship"
+                                <div
+                                    class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                    <label class="text-xs font-medium text-black/50">Relationship to Guardian *</label>
+                                    <select name="guardian_relationship" required
                                         class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
                                         <option value="">Select</option>
                                         <option value="Parent" <?= ($old['guardian_relationship'] ?? '') === 'Parent' ? 'selected' : '' ?>>Parent</option>
@@ -680,33 +711,34 @@ $step_labels = [
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div
                                         class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">Junior High School Name</label>
+                                        <label class="text-xs font-medium text-black/50">Junior High School Name *</label>
                                         <input type="text" name="highschool_name"
-                                            value="<?= htmlspecialchars($old['highschool_name'] ?? '') ?>"
+                                            value="<?= htmlspecialchars($old['highschool_name'] ?? '') ?>" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="Name of your school">
                                     </div>
                                     <div
                                         class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">School Address</label>
+                                        <label class="text-xs font-medium text-black/50">School Address *</label>
                                         <input type="text" name="highschool_address"
-                                            value="<?= htmlspecialchars($old['highschool_address'] ?? '') ?>"
+                                            value="<?= htmlspecialchars($old['highschool_address'] ?? '') ?>" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="Complete school address">
                                     </div>
                                     <div
                                         class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">Year Graduated</label>
+                                        <label class="text-xs font-medium text-black/50">Year Graduated *</label>
                                         <input type="text" name="year_graduated"
-                                            value="<?= htmlspecialchars($old['year_graduated'] ?? '') ?>"
+                                            value="<?= htmlspecialchars($old['year_graduated'] ?? '') ?>" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="2026">
                                     </div>
                                     <div
                                         class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">LRN (Learner Reference Number)</label>
+                                        <label class="text-xs font-medium text-black/50">LRN (Learner Reference
+                                            Number) *</label>
                                         <input type="text" name="lrn" value="<?= htmlspecialchars($old['lrn'] ?? '') ?>"
-                                            maxlength="12"
+                                            required maxlength="12"
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="12-digit LRN">
                                     </div>
@@ -719,57 +751,65 @@ $step_labels = [
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div
                                         class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">Senior High School Name</label>
+                                        <label class="text-xs font-medium text-black/50">Senior High School Name *</label>
                                         <input type="text" name="highschool_name"
-                                            value="<?= htmlspecialchars($old['highschool_name'] ?? '') ?>"
+                                            value="<?= htmlspecialchars($old['highschool_name'] ?? '') ?>" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="Name of your school">
                                     </div>
                                     <div
                                         class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">School Address</label>
+                                        <label class="text-xs font-medium text-black/50">School Address *</label>
                                         <input type="text" name="highschool_address"
-                                            value="<?= htmlspecialchars($old['highschool_address'] ?? '') ?>"
+                                            value="<?= htmlspecialchars($old['highschool_address'] ?? '') ?>" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="Complete school address">
                                     </div>
-                                    <div class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">SHS Track</label>
-                                        <select name="shs_track" class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
+                                    <div
+                                        class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">SHS Track *</label>
+                                        <select name="shs_track" required
+                                            class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
                                             <option value="">Select Track</option>
                                             <option value="Academic" <?= ($old['shs_track'] ?? '') === 'Academic' ? 'selected' : '' ?>>Academic</option>
-                                            <option value="Technical-Vocational" <?= ($old['shs_track'] ?? '') === 'Technical-Vocational' ? 'selected' : '' ?>>Technical-Vocational</option>
+                                            <option value="Technical-Vocational" <?= ($old['shs_track'] ?? '') === 'Technical-Vocational' ? 'selected' : '' ?>>Technical-Vocational
+                                            </option>
                                             <option value="Sports" <?= ($old['shs_track'] ?? '') === 'Sports' ? 'selected' : '' ?>>Sports</option>
                                             <option value="Arts and Design" <?= ($old['shs_track'] ?? '') === 'Arts and Design' ? 'selected' : '' ?>>Arts and Design</option>
                                         </select>
                                     </div>
-                                    <div class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">SHS Strand</label>
-                                        <select name="shs_strand"
+                                    <div
+                                        class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">SHS Strand *</label>
+                                        <select name="shs_strand" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
                                             <option value="">Select Strand</option>
                                             <option value="STEM" <?= ($old['shs_strand'] ?? '') === 'STEM' ? 'selected' : '' ?>>STEM</option>
                                             <option value="HUMSS" <?= ($old['shs_strand'] ?? '') === 'HUMSS' ? 'selected' : '' ?>>HUMSS</option>
-                                            <option value="ABM" <?= ($old['shs_strand'] ?? '') === 'ABM' ? 'selected' : '' ?>>ABM</option>
-                                            <option value="TVL" <?= ($old['shs_strand'] ?? '') === 'TVL' ? 'selected' : '' ?>>TVL</option>
-                                            <option value="GAS" <?= ($old['shs_strand'] ?? '') === 'GAS' ? 'selected' : '' ?>>GAS</option>
+                                            <option value="ABM" <?= ($old['shs_strand'] ?? '') === 'ABM' ? 'selected' : '' ?>>
+                                                ABM</option>
+                                            <option value="TVL" <?= ($old['shs_strand'] ?? '') === 'TVL' ? 'selected' : '' ?>>
+                                                TVL</option>
+                                            <option value="GAS" <?= ($old['shs_strand'] ?? '') === 'GAS' ? 'selected' : '' ?>>
+                                                GAS</option>
                                             <option value="Sports" <?= ($old['shs_strand'] ?? '') === 'Sports' ? 'selected' : '' ?>>Sports</option>
                                             <option value="Arts" <?= ($old['shs_strand'] ?? '') === 'Arts' ? 'selected' : '' ?>>Arts</option>
                                         </select>
                                     </div>
                                     <div
                                         class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">Year Graduated</label>
+                                        <label class="text-xs font-medium text-black/50">Year Graduated *</label>
                                         <input type="text" name="year_graduated"
-                                            value="<?= htmlspecialchars($old['year_graduated'] ?? '') ?>"
+                                            value="<?= htmlspecialchars($old['year_graduated'] ?? '') ?>" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="2026">
                                     </div>
                                     <div
                                         class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">LRN (Learner Reference Number)</label>
+                                        <label class="text-xs font-medium text-black/50">LRN (Learner Reference
+                                            Number) *</label>
                                         <input type="text" name="lrn" value="<?= htmlspecialchars($old['lrn'] ?? '') ?>"
-                                            maxlength="12"
+                                            required maxlength="12"
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="12-digit LRN">
                                     </div>
@@ -782,23 +822,24 @@ $step_labels = [
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div
                                         class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">Previous College/University</label>
+                                        <label class="text-xs font-medium text-black/50">Previous College/University *</label>
                                         <input type="text" name="previous_college"
-                                            value="<?= htmlspecialchars($old['previous_college'] ?? '') ?>"
+                                            value="<?= htmlspecialchars($old['previous_college'] ?? '') ?>" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="Name of previous school">
                                     </div>
                                     <div
                                         class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">Course Taken</label>
+                                        <label class="text-xs font-medium text-black/50">Course Taken *</label>
                                         <input type="text" name="previous_course"
-                                            value="<?= htmlspecialchars($old['previous_course'] ?? '') ?>"
+                                            value="<?= htmlspecialchars($old['previous_course'] ?? '') ?>" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1 placeholder:text-black/30"
                                             placeholder="BS Information Technology">
                                     </div>
-                                    <div class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">Last Year Level</label>
-                                        <select name="last_year_level"
+                                    <div
+                                        class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">Last Year Level *</label>
+                                        <select name="last_year_level" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
                                             <option value="">Select Year Level</option>
                                             <option value="1st Year" <?= ($old['last_year_level'] ?? '') === '1st Year' ? 'selected' : '' ?>>1st Year</option>
@@ -815,50 +856,88 @@ $step_labels = [
                         <!-- Step 5: Course Selection -->
                         <div id="courseSelectionStep" class="step-content" data-step="5">
                             <!-- SHS Track/Strand selection (for senior high applicants) -->
-                            <div id="shsCourseFields" class="education-section <?= ($old['education_type'] ?? '') === 'senior_high' ? 'active' : '' ?>">
+                            <div id="shsCourseFields"
+                                class="education-section <?= ($old['education_type'] ?? '') === 'senior_high' ? 'active' : '' ?>">
                                 <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                                     <span
                                         class="w-6 h-6 rounded-full bg-google-blue text-white text-xs flex items-center justify-center">5</span>
                                     SHS Track & Strand Selection
                                 </h3>
-                                <p class="text-sm text-gray-600 mb-4">Select your desired Senior High School track and strand.</p>
+                                <p class="text-sm text-gray-600 mb-4">Select your desired Senior High School track and
+                                    strand.</p>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                    <div
+                                        class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
                                         <label class="text-xs font-medium text-black/50">SHS Track *</label>
-                                        <select name="shs_track" class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
+                                        <select name="shs_track" required
+                                            class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
                                             <option value="">Select Track</option>
                                             <option value="Academic" <?= ($old['shs_track'] ?? '') === 'Academic' ? 'selected' : '' ?>>Academic</option>
-                                            <option value="Technical-Vocational" <?= ($old['shs_track'] ?? '') === 'Technical-Vocational' ? 'selected' : '' ?>>Technical-Vocational</option>
+                                            <option value="Technical-Vocational" <?= ($old['shs_track'] ?? '') === 'Technical-Vocational' ? 'selected' : '' ?>>Technical-Vocational
+                                            </option>
                                             <option value="Sports" <?= ($old['shs_track'] ?? '') === 'Sports' ? 'selected' : '' ?>>Sports</option>
                                             <option value="Arts and Design" <?= ($old['shs_track'] ?? '') === 'Arts and Design' ? 'selected' : '' ?>>Arts and Design</option>
                                         </select>
                                     </div>
-                                    <div class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                    <div
+                                        class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
                                         <label class="text-xs font-medium text-black/50">SHS Strand *</label>
-                                        <select name="shs_strand" id="shs_strand_course"
+                                        <select name="shs_strand" id="shs_strand_course" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
                                             <option value="">Select Strand</option>
                                             <option value="STEM" <?= ($old['shs_strand'] ?? '') === 'STEM' ? 'selected' : '' ?>>STEM</option>
                                             <option value="HUMSS" <?= ($old['shs_strand'] ?? '') === 'HUMSS' ? 'selected' : '' ?>>HUMSS</option>
-                                            <option value="ABM" <?= ($old['shs_strand'] ?? '') === 'ABM' ? 'selected' : '' ?>>ABM</option>
-                                            <option value="TVL" <?= ($old['shs_strand'] ?? '') === 'TVL' ? 'selected' : '' ?>>TVL</option>
-                                            <option value="GAS" <?= ($old['shs_strand'] ?? '') === 'GAS' ? 'selected' : '' ?>>GAS</option>
+                                            <option value="ABM" <?= ($old['shs_strand'] ?? '') === 'ABM' ? 'selected' : '' ?>>
+                                                ABM</option>
+                                            <option value="TVL" <?= ($old['shs_strand'] ?? '') === 'TVL' ? 'selected' : '' ?>>
+                                                TVL</option>
+                                            <option value="GAS" <?= ($old['shs_strand'] ?? '') === 'GAS' ? 'selected' : '' ?>>
+                                                GAS</option>
                                             <option value="Sports" <?= ($old['shs_strand'] ?? '') === 'Sports' ? 'selected' : '' ?>>Sports</option>
                                             <option value="Arts" <?= ($old['shs_strand'] ?? '') === 'Arts' ? 'selected' : '' ?>>Arts</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Academic Year & Semester for SHS -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                    <div
+                                        class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">Academic Year *</label>
+                                        <select name="academic_year_id" id="shs_academic_year_id" required
+                                            class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
+                                            <option value="">Select Academic Year</option>
+                                            <?php foreach ($academicYears as $ay): ?>
+                                                <option value="<?= $ay['id'] ?>" <?= ($old['academic_year_id'] ?? '') == $ay['id'] ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($ay['year']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div
+                                        class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">Semester *</label>
+                                        <select name="semester" id="shs_semester" required
+                                            class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
+                                            <option value="1st Semester" <?= ($old['semester'] ?? '') === '1st Semester' ? 'selected' : '' ?>>1st Semester</option>
+                                            <option value="2nd Semester" <?= ($old['semester'] ?? '') === '2nd Semester' ? 'selected' : '' ?>>2nd Semester</option>
+                                            <option value="Summer" <?= ($old['semester'] ?? '') === 'Summer' ? 'selected' : '' ?>>Summer</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- College Course Selection (for college applicants) -->
-                            <div id="collegeCourseFields" class="education-section <?= in_array($old['education_type'] ?? '', ['college_freshman', 'transferee']) ? 'active' : '' ?>">
+                            <div id="collegeCourseFields"
+                                class="education-section <?= in_array($old['education_type'] ?? '', ['college_freshman', 'transferee']) ? 'active' : '' ?>">
                                 <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                                     <span
                                         class="w-6 h-6 rounded-full bg-google-blue text-white text-xs flex items-center justify-center">5</span>
                                     Course Selection
                                 </h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                    <div
+                                        class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
                                         <label class="text-xs font-medium text-black/50">Preferred Course *</label>
                                         <select name="preferred_course" id="preferred_course" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
@@ -872,20 +951,24 @@ $step_labels = [
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-                                    <div class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
-                                        <label class="text-xs font-medium text-black/50">Second Choice Course (Optional)</label>
+                                    <div
+                                        class="md:col-span-2 relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                        <label class="text-xs font-medium text-black/50">Second Choice Course
+                                            (Optional)</label>
                                         <select name="second_course"
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
                                             <option value="">Select Course</option>
                                             <?php foreach ($bachelorCourses as $course): ?>
-                                                <option value="<?= htmlspecialchars($course['code']) ?>" <?= ($old['second_course'] ?? '') === $course['code'] ? 'selected' : '' ?>>
+                                                <option value="<?= htmlspecialchars($course['code']) ?>"
+                                                    <?= ($old['second_course'] ?? '') === $course['code'] ? 'selected' : '' ?>>
                                                     <?= htmlspecialchars($course['code']) ?> -
                                                     <?= htmlspecialchars($course['name']) ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-                                    <div class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                    <div
+                                        class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
                                         <label class="text-xs font-medium text-black/50">Academic Year *</label>
                                         <select name="academic_year_id" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
@@ -897,7 +980,8 @@ $step_labels = [
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-                                    <div class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
+                                    <div
+                                        class="relative border border-black/10 rounded-xl px-4 py-2 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-black/5">
                                         <label class="text-xs font-medium text-black/50">Semester *</label>
                                         <select name="semester" required
                                             class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1 py-1">
@@ -913,7 +997,8 @@ $step_labels = [
                                 <div class="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
                                     <h4 class="text-sm font-bold text-blue-800 mb-2">Example:</h4>
                                     <div class="grid grid-cols-2 gap-2 text-sm">
-                                        <div><span class="text-blue-600">Course:</span> <span class="font-medium">BS Information
+                                        <div><span class="text-blue-600">Course:</span> <span class="font-medium">BS
+                                                Information
                                                 Technology</span></div>
                                         <div><span class="text-blue-600">Academic Year:</span> <span
                                                 class="font-medium">2026-2027</span></div>
@@ -1102,6 +1187,20 @@ $step_labels = [
 
                     </form>
 
+                    <!-- Alert Modal -->
+                    <div id="alertModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[999]">
+                        <div class="bg-white rounded-2xl max-w-md w-full m-4 p-6 text-center">
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+                                <svg class="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900 mb-2">Required Fields</h3>
+                            <p class="text-sm text-gray-500 mb-6" id="alertMessage">Please fill in all required fields.</p>
+                            <button onclick="closeAlertModal()" class="px-6 py-2 bg-google-blue text-white rounded-lg text-sm font-medium hover:bg-google-blue-hover">OK</button>
+                        </div>
+                    </div>
+
                 <?php endif; ?>
 
             </div>
@@ -1152,12 +1251,19 @@ $step_labels = [
             const requiredFields = currentContent.querySelectorAll('[required]');
             let isValid = true;
 
+            // Reset all wrapper borders first
+            currentContent.querySelectorAll('.border').forEach(el => {
+                el.style.borderColor = '';
+            });
+
             requiredFields.forEach(field => {
+                if (field.disabled) return;
                 if (!field.value.trim()) {
                     isValid = false;
-                    field.style.borderColor = 'red';
-                } else {
-                    field.style.borderColor = '';
+                    const wrapper = field.closest('.border');
+                    if (wrapper) {
+                        wrapper.style.borderColor = '#ef4444';
+                    }
                 }
             });
 
@@ -1166,7 +1272,7 @@ $step_labels = [
 
         function nextStep() {
             if (!validateStep(currentStep)) {
-                alert('Please fill in all required fields.');
+                showAlertModal('Please fill in all required fields marked with an asterisk (*).');
                 return;
             }
 
@@ -1174,6 +1280,17 @@ $step_labels = [
                 currentStep++;
                 updateStepDisplay();
             }
+        }
+
+        function showAlertModal(message) {
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').classList.remove('hidden');
+            document.getElementById('alertModal').classList.add('flex');
+        }
+
+        function closeAlertModal() {
+            document.getElementById('alertModal').classList.add('hidden');
+            document.getElementById('alertModal').classList.remove('flex');
         }
 
         function prevStep() {
@@ -1212,10 +1329,10 @@ $step_labels = [
             document.getElementById('collegeCourseFields').classList.toggle('active', isCollege);
 
             // Disable fields in hidden sections so their values aren't submitted
-            document.querySelectorAll('.education-section:not(.active) select, .education-section:not(.active) input').forEach(function(el) {
+            document.querySelectorAll('.education-section:not(.active) select, .education-section:not(.active) input').forEach(function (el) {
                 el.disabled = true;
             });
-            document.querySelectorAll('.education-section.active select, .education-section.active input').forEach(function(el) {
+            document.querySelectorAll('.education-section.active select, .education-section.active input').forEach(function (el) {
                 el.disabled = false;
             });
 
@@ -1243,6 +1360,13 @@ $step_labels = [
             updateStepDisplay();
             toggleEducationFields();
             calculateAge();
+
+            // Close alert modal on outside click
+            document.getElementById('alertModal').addEventListener('click', function (e) {
+                if (e.target === this) {
+                    closeAlertModal();
+                }
+            });
         });
     </script>
 </body>

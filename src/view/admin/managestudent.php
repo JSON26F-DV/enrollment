@@ -788,9 +788,9 @@ try {
 <?php endif; ?>
 
 <!-- Document Status Edit Modal -->
-<div id="docStatusModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-2xl max-w-lg w-full m-4">
-        <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+<div id="docStatusModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full flex flex-col" style="max-height: 90vh;">
+        <div class="flex-shrink-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl">
             <h2 class="text-lg font-bold" id="docModalTitle">Edit Document Status</h2>
             <button onclick="closeDocModal()" class="text-gray-400 hover:text-gray-600">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -798,43 +798,45 @@ try {
                 </svg>
             </button>
         </div>
-        <div id="docPreview" class="p-4 bg-gray-50 flex items-center justify-center min-h-[80px]"></div>
-        <form method="POST" class="p-6 space-y-4">
-            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-            <input type="hidden" name="update_doc_status" value="1">
-            <input type="hidden" name="doc_id" id="docStatusDocId">
+        <div class="overflow-y-auto flex-1">
+            <div id="docPreview" class="p-4 bg-gray-50 flex items-center justify-center min-h-[80px]"></div>
+            <form method="POST" class="p-6 space-y-4">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                <input type="hidden" name="update_doc_status" value="1">
+                <input type="hidden" name="doc_id" id="docStatusDocId">
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select name="doc_status" id="docStatusSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                    <option value="pending">Pending</option>
-                    <option value="submitted">Submitted</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Quick Notes</label>
-                <div class="flex flex-wrap gap-1 mb-2">
-                    <button type="button" onclick="setDocNote('For OSA review and verification of documents.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Need verification — refer to OSA</button>
-                    <button type="button" onclick="setDocNote('Document is unclear. Please resubmit a clearer copy.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Need resubmit — unclear copy</button>
-                    <button type="button" onclick="setDocNote('Document is incomplete. Please resubmit the complete version.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Need resubmit — incomplete</button>
-                    <button type="button" onclick="setDocNote('Document is currently under review.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Under review</button>
-                    <button type="button" onclick="setDocNote('Document has been verified and approved.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Approved — all clear</button>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select name="doc_status" id="docStatusSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        <option value="pending">Pending</option>
+                        <option value="submitted">Submitted</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
                 </div>
-            </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                <textarea name="doc_notes" id="docStatusNotes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Add notes about this document..."></textarea>
-            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Quick Notes</label>
+                    <div class="flex flex-wrap gap-1 mb-2">
+                        <button type="button" onclick="setDocNote('For OSA review and verification of documents.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Need verification — refer to OSA</button>
+                        <button type="button" onclick="setDocNote('Document is unclear. Please resubmit a clearer copy.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Need resubmit — unclear copy</button>
+                        <button type="button" onclick="setDocNote('Document is incomplete. Please resubmit the complete version.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Need resubmit — incomplete</button>
+                        <button type="button" onclick="setDocNote('Document is currently under review.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Under review</button>
+                        <button type="button" onclick="setDocNote('Document has been verified and approved.')" class="text-[11px] px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Approved — all clear</button>
+                    </div>
+                </div>
 
-            <div class="flex gap-2 justify-end">
-                <button type="button" onclick="closeDocModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Update Status</button>
-            </div>
-        </form>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <textarea name="doc_notes" id="docStatusNotes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Add notes about this document..."></textarea>
+                </div>
+
+                <div class="flex gap-2 justify-end">
+                    <button type="button" onclick="closeDocModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Update Status</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 

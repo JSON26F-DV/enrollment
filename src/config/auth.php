@@ -20,7 +20,7 @@ function check_college() {
 }
 
 function check_staff() {
-    return check_logged_in() && isset($_SESSION['role']) && $_SESSION['role'] === 'staff';
+    return check_logged_in() && isset($_SESSION['role']) && in_array($_SESSION['role'], ['staff', 'registrar']);
 }
 
 function require_login() {

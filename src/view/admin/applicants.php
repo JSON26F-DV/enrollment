@@ -1,4 +1,5 @@
 <?php
+ob_start();
 $page_title = 'Applicants';
 require_once __DIR__ . '/sidebar.php';
 
@@ -6,12 +7,14 @@ $errors = [];
 $success = '';
 $ajax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest';
 
-function approve_applicant($pdo, $applicant_id, $reviewer_id) {
+function approve_applicant($pdo, $applicant_id, $reviewer_id)
+{
     $stmt = $pdo->prepare("SELECT * FROM applicants WHERE id = ? AND status = 'pending'");
     $stmt->execute([$applicant_id]);
     $applicant = $stmt->fetch();
 
-    if (!$applicant) return 'Applicant not found or already processed.';
+    if (!$applicant)
+        return 'Applicant not found or already processed.';
 
     $hashed_password = password_hash('ncst123', PASSWORD_DEFAULT);
     $role = ($applicant['education_type'] === 'senior_high') ? 'shs' : 'college';
@@ -23,12 +26,27 @@ function approve_applicant($pdo, $applicant_id, $reviewer_id) {
         password, role, status, created_by
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([
-        $applicant['first_name'], $applicant['middle_name'], $applicant['last_name'],
-        $applicant['suffix'], $applicant['birthday'], $applicant['gender'],
-        $applicant['civil_status'], $applicant['nationality'], $applicant['religion'],
-        $applicant['birth_place'], $applicant['email'], $applicant['contact_number'],
-        $applicant['home_address'], $applicant['province'], $applicant['city'],
-        $applicant['barangay'], $applicant['zip_code'], $hashed_password, $role, 'active', $reviewer_id
+        $applicant['first_name'],
+        $applicant['middle_name'],
+        $applicant['last_name'],
+        $applicant['suffix'],
+        $applicant['birthday'],
+        $applicant['gender'],
+        $applicant['civil_status'],
+        $applicant['nationality'],
+        $applicant['religion'],
+        $applicant['birth_place'],
+        $applicant['email'],
+        $applicant['contact_number'],
+        $applicant['home_address'],
+        $applicant['province'],
+        $applicant['city'],
+        $applicant['barangay'],
+        $applicant['zip_code'],
+        $hashed_password,
+        $role,
+        'active',
+        $reviewer_id
     ]);
     $user_id = $pdo->lastInsertId();
 
@@ -39,12 +57,26 @@ function approve_applicant($pdo, $applicant_id, $reviewer_id) {
         preferred_course, second_course, semester, academic_year
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([
-        $user_id, $applicant['father_name'], $applicant['mother_name'],
-        $applicant['guardian_name'], $applicant['guardian_contact'], $applicant['guardian_relationship'],
-        $applicant['education_type'], $applicant['highschool_name'], $applicant['highschool_address'],
-        $applicant['shs_track'], $applicant['shs_strand'], $applicant['year_graduated'], $applicant['lrn'],
-        $applicant['previous_college'], $applicant['previous_course'], $applicant['last_year_level'],
-        $applicant['preferred_course'], $applicant['second_course'], $applicant['semester'], $applicant['academic_year']
+        $user_id,
+        $applicant['father_name'],
+        $applicant['mother_name'],
+        $applicant['guardian_name'],
+        $applicant['guardian_contact'],
+        $applicant['guardian_relationship'],
+        $applicant['education_type'],
+        $applicant['highschool_name'],
+        $applicant['highschool_address'],
+        $applicant['shs_track'],
+        $applicant['shs_strand'],
+        $applicant['year_graduated'],
+        $applicant['lrn'],
+        $applicant['previous_college'],
+        $applicant['previous_course'],
+        $applicant['last_year_level'],
+        $applicant['preferred_course'],
+        $applicant['second_course'],
+        $applicant['semester'],
+        $applicant['academic_year']
     ]);
 
     // Move documents
@@ -54,7 +86,8 @@ function approve_applicant($pdo, $applicant_id, $reviewer_id) {
 
     $student_upload_path = get_document_path('student_document') ?: '/assets/uploads/documents/students/';
     $student_upload_dir = PROJECT_ROOT . $student_upload_path;
-    if (!is_dir($student_upload_dir)) mkdir($student_upload_dir, 0755, true);
+    if (!is_dir($student_upload_dir))
+        mkdir($student_upload_dir, 0755, true);
 
     foreach ($docs as $doc) {
         $old_file = PROJECT_ROOT . ltrim($doc['file_path'], '/');
@@ -80,7 +113,10 @@ function approve_applicant($pdo, $applicant_id, $reviewer_id) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_doc_status'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $msg = 'Invalid session token.';
-        if ($ajax) { echo json_encode(['ok' => false, 'msg' => $msg]); exit; }
+        if ($ajax) {
+            echo json_encode(['ok' => false, 'msg' => $msg]);
+            exit;
+        }
         $errors[] = $msg;
     } else {
         $doc_id = (int) ($_POST['doc_id'] ?? 0);
@@ -110,14 +146,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_doc_status']))
             }
 
             if ($ajax) {
+                ob_clean();
                 echo json_encode(['ok' => true, 'msg' => $success]);
                 exit;
             }
         } else {
             $msg = 'Invalid request.';
-            if ($ajax) { echo json_encode(['ok' => false, 'msg' => $msg]); exit; }
+            if ($ajax) {
+                ob_clean();
+                echo json_encode(['ok' => false, 'msg' => $msg]);
+                exit;
+            }
             $errors[] = $msg;
         }
+    }
+}
+
+// Handle appointment save
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_appointment'])) {
+    $applicant_id = (int) ($_POST['applicant_id'] ?? 0);
+    $appointment_label = trim($_POST['appointment_label'] ?? '');
+    $appointment = trim($_POST['appointment'] ?? '');
+
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        ob_clean();
+        echo json_encode(['ok' => false, 'msg' => 'Invalid session token.']);
+        exit;
+    }
+
+    if (!$applicant_id || empty($appointment)) {
+        ob_clean();
+        echo json_encode(['ok' => false, 'msg' => 'Please select a date and time.']);
+        exit;
+    }
+
+    try {
+        $appointment_dt = date('Y-m-d H:i:s', strtotime($appointment));
+        $stmt = $pdo->prepare("UPDATE applicants SET appointment_label = ?, appointment = ? WHERE id = ?");
+        $stmt->execute([$appointment_label, $appointment_dt, $applicant_id]);
+        ob_clean();
+        echo json_encode(['ok' => true, 'msg' => 'Appointment set successfully.']);
+        exit;
+    } catch (PDOException $e) {
+        ob_clean();
+        echo json_encode(['ok' => false, 'msg' => 'Database error: ' . $e->getMessage()]);
+        exit;
     }
 }
 
@@ -153,6 +226,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                     $rejected = $stmt2->fetch();
                     if ($rejected) {
                         send_rejection_email($rejected['email'], $rejected['first_name'], $rejection_reason);
+                    }
+                } elseif ($action === 'revision') {
+                    $stmt2 = $pdo->query("SELECT * FROM applicants WHERE id = $applicant_id");
+                    $rev = $stmt2->fetch();
+                    if ($rev) {
+                        send_revision_email($rev['email'], $rev['first_name'], $rejection_reason);
                     }
                 }
 
@@ -348,18 +427,21 @@ foreach ($applicants as $a) {
 </div>
 
 <!-- Confirm Modal -->
-<div id="confirmModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[999]">
+<div id="confirmModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[99999]">
     <div class="bg-white rounded-2xl max-w-md w-full m-4 p-6 text-center">
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
             <svg class="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
         </div>
         <h3 class="text-lg font-bold text-gray-900 mb-2" id="confirmTitle">Confirm Action</h3>
         <p class="text-sm text-gray-500 mb-6" id="confirmMessage">Are you sure?</p>
         <div class="flex gap-3 justify-center">
-            <button onclick="closeConfirmModal()" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
-            <button id="confirmOkBtn" class="px-6 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">Confirm</button>
+            <button onclick="closeConfirmModal()"
+                class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
+            <button id="confirmOkBtn"
+                class="px-6 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">Confirm</button>
         </div>
     </div>
 </div>
@@ -380,7 +462,7 @@ foreach ($applicants as $a) {
 </div>
 
 <!-- Document Viewer Modal -->
-<div id="docViewerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[999]">
+<div id="docViewerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[1000]">
     <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4">
         <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
             <h2 class="text-lg font-bold" id="docViewerTitle">Document</h2>
@@ -439,10 +521,10 @@ foreach ($applicants as $a) {
                         <input type="hidden" name="doc_id" value="${d.id}">
                         <div class="flex gap-2 items-start">
                             <select name="doc_status" class="text-xs px-2 py-1 border rounded">
-                                <option value="pending" ${(d.status||'pending')==='pending'?'selected':''}>Pending</option>
-                                <option value="submitted" ${d.status==='submitted'?'selected':''}>Submitted</option>
-                                <option value="approved" ${d.status==='approved'?'selected':''}>Approved</option>
-                                <option value="rejected" ${d.status==='rejected'?'selected':''}>Rejected</option>
+                                <option value="pending" ${(d.status || 'pending') === 'pending' ? 'selected' : ''}>Pending</option>
+                                <option value="submitted" ${d.status === 'submitted' ? 'selected' : ''}>Submitted</option>
+                                <option value="approved" ${d.status === 'approved' ? 'selected' : ''}>Approved</option>
+                                <option value="rejected" ${d.status === 'rejected' ? 'selected' : ''}>Rejected</option>
                             </select>
                             <button type="submit" class="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Update</button>
                         </div>
@@ -562,6 +644,48 @@ foreach ($applicants as $a) {
             </div>
         </div>
         
+        <div class="border-t pt-6 mt-6 px-1 pb-4" id="appointmentSection">
+            <h3 class="font-bold text-gray-900 mb-4">Appointment</h3>
+            <div id="appointmentDisplay_${id}">
+                ${app.appointment ? `
+                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl mb-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <div>
+                                <p class="font-medium text-blue-800">${val(app.appointment_label)}</p>
+                                <p class="text-sm text-blue-600 mt-0.5">${new Date(app.appointment).toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                                <button type="button" onclick="showAppointmentForm(${id})" class="mt-2 text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline">Edit Appointment</button>
+                            </div>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl mb-4 text-center">
+                        <svg class="w-8 h-8 text-gray-300 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <p class="text-sm text-gray-500">No appointment set for this applicant.</p>
+                    </div>
+                `}
+            </div>
+            <div id="appointmentForm_${id}" class="hidden p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="relative border border-black/10 rounded-xl px-4 py-3 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-white">
+                        <label class="text-xs font-medium text-black/50">Appointment Date & Time *</label>
+                        <input type="datetime-local" name="appointment" id="appointmentDate_${id}" value="${app.appointment ? app.appointment.substring(0, 16) : ''}"
+                            class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1.5 py-1">
+                    </div>
+                    <div class="relative border border-black/10 rounded-xl px-4 py-3 focus-within:border-google-blue focus-within:ring-1 focus-within:ring-google-blue transition-all bg-white">
+                        <label class="text-xs font-medium text-black/50">Appointment Label</label>
+                        <input type="text" name="appointment_label" id="appointmentLabel_${id}" value="${val(app.appointment_label, 'Enrollment Interview')}"
+                            class="w-full bg-transparent text-sm font-medium text-black outline-none mt-1.5 py-1 placeholder:text-black/30" placeholder="e.g. Enrollment Interview">
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-4">
+                    <button type="button" onclick="saveAppointment(${id})" class="px-5 py-2 text-sm font-bold text-white bg-google-blue hover:bg-google-blue-hover rounded-full transition-colors shadow-sm active:scale-95 px-4">Save Appointment</button>
+                    <button type="button" onclick="hideAppointmentForm(${id})" class="px-5 py-2 text-sm font-bold text-black/60 hover:text-black border border-black/10 rounded-full transition-colors active:scale-95 px-4">Cancel</button>
+                </div>
+            </div>
+            ${!app.appointment ? `<button type="button" onclick="showAppointmentForm(${id})" class="mt-2 px-5 py-2 text-sm font-bold text-google-blue hover:bg-google-blue/10 border border-google-blue/30 rounded-full transition-colors active:scale-95">Set Appointment</button>` : ''}
+        </div>
+
         ${actionForm}
     `;
 
@@ -596,7 +720,9 @@ foreach ($applicants as $a) {
         document.getElementById('confirmMessage').textContent = 'A student account will be created with default password: ncst123. An email notification will be sent. Proceed?';
         document.getElementById('confirmOkBtn').className = 'px-6 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700';
         document.getElementById('confirmOkBtn').textContent = 'Confirm Approve';
-        document.getElementById('confirmOkBtn').onclick = function() { doApprove(); };
+        document.getElementById('confirmOkBtn').onclick = function () { doApprove(); };
+        document.getElementById('applicationModal').classList.add('hidden');
+        document.getElementById('applicationModal').classList.remove('flex');
         document.getElementById('confirmModal').classList.remove('hidden');
         document.getElementById('confirmModal').classList.add('flex');
     }
@@ -604,6 +730,8 @@ foreach ($applicants as $a) {
     function closeConfirmModal() {
         document.getElementById('confirmModal').classList.add('hidden');
         document.getElementById('confirmModal').classList.remove('flex');
+        document.getElementById('applicationModal').classList.remove('hidden');
+        document.getElementById('applicationModal').classList.add('flex');
         pendingApproveId = null;
     }
 
@@ -662,29 +790,91 @@ foreach ($applicants as $a) {
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
             body: formData
         })
+            .then(r => r.json())
+            .then(data => {
+                const docId = formData.get('doc_id');
+                const status = formData.get('doc_status');
+                const notes = formData.get('doc_notes');
+
+                // Update badge
+                const badge = document.getElementById('docBadge_' + docId);
+                if (badge) badge.innerHTML = statusBadge(status);
+
+                // Update notes
+                const noteEl = document.getElementById('docNote_' + docId);
+                if (noteEl) noteEl.textContent = notes || '';
+
+                // Reload page if auto-approved
+                if (data.msg && data.msg.includes('approved')) {
+                    location.reload();
+                }
+            })
+            .catch(() => {
+                location.reload();
+            });
+    });
+
+    // --- Appointment Form ---
+    function showAppointmentForm(id) {
+        document.getElementById('appointmentForm_' + id).classList.remove('hidden');
+        document.getElementById('appointmentForm_' + id).classList.add('flex', 'flex-col');
+        document.getElementById('appointmentDisplay_' + id).classList.add('hidden');
+        // Hide the "Set Appointment" button
+        const btn = document.querySelector('#appointmentSection > button');
+        if (btn) btn.classList.add('hidden');
+    }
+
+    function hideAppointmentForm(id) {
+        document.getElementById('appointmentForm_' + id).classList.add('hidden');
+        document.getElementById('appointmentForm_' + id).classList.remove('flex', 'flex-col');
+        document.getElementById('appointmentDisplay_' + id).classList.remove('hidden');
+        const btn = document.querySelector('#appointmentSection > button');
+        if (btn) btn.classList.remove('hidden');
+    }
+
+    function saveAppointment(id) {
+        const dt = document.getElementById('appointmentDate_' + id).value;
+        if (!dt) { alert('Please select a date and time.'); return; }
+        const label = document.getElementById('appointmentLabel_' + id).value;
+        const formData = new FormData();
+        formData.append('csrf_token', csrfToken);
+        formData.append('save_appointment', '1');
+        formData.append('applicant_id', id);
+        formData.append('appointment_label', label);
+        formData.append('appointment', dt);
+
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        })
         .then(r => r.json())
         .then(data => {
-            const docId = formData.get('doc_id');
-            const status = formData.get('doc_status');
-            const notes = formData.get('doc_notes');
-
-            // Update badge
-            const badge = document.getElementById('docBadge_' + docId);
-            if (badge) badge.innerHTML = statusBadge(status);
-
-            // Update notes
-            const noteEl = document.getElementById('docNote_' + docId);
-            if (noteEl) noteEl.textContent = notes || '';
-
-            // Reload page if auto-approved
-            if (data.msg && data.msg.includes('approved')) {
-                location.reload();
+            if (data.ok) {
+                const dateStr = new Date(dt).toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                document.getElementById('appointmentDisplay_' + id).innerHTML = `
+                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl mb-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <div>
+                                <p class="font-medium text-blue-800">${label}</p>
+                                <p class="text-sm text-blue-600 mt-0.5">${dateStr}</p>
+                                <button type="button" onclick="showAppointmentForm(${id})" class="mt-2 text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline">Edit Appointment</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('appointmentDisplay_' + id).classList.remove('hidden');
+                document.getElementById('appointmentForm_' + id).classList.add('hidden');
+                document.getElementById('appointmentForm_' + id).classList.remove('flex', 'flex-col');
+                applicants[id].appointment = dt;
+                applicants[id].appointment_label = label;
+            } else {
+                alert(data.msg || 'Failed to save appointment.');
             }
         })
-        .catch(() => {
-            location.reload();
-        });
-    });
+        .catch(err => { alert('Error: ' + (err.message || 'Request failed.')); });
+    }
 
     // --- Doc Viewer ---
     function openDocViewer(filePath, fileName) {
